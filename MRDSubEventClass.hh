@@ -289,7 +289,7 @@ std::vector<std::string> cMRDSubEvent::colorhexes{"#21ffff", "#20deea", "#1fbcd5
 std::vector<EColor> cMRDSubEvent::trackcolours{kBlack, kBlue, (EColor)TColor::GetColorDark(kGreen), kRed, kViolet, kOrange, kMagenta,(EColor)(kAzure+2),(EColor)(kOrange+4),(EColor)(kViolet-6),(EColor)(kTeal-6)};
 
 #include "MRDSubEvent_DoReconstruction.cxx"			// contains reconstruction function definitions
-#include "makemrdimage.cxx"							// functions to draw the MRD top and side views
+#include "MRDSubEvent_MakeMrdImage.cxx"			// functions to draw the MRD top and side views
 #include "MRDSubEvent_DrawTruthTracks.cxx"			// contains the function to draw truth tracks
 #include "MRDSubEvent_Draw_Print.cxx"				// contains the print function
 

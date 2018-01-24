@@ -149,7 +149,7 @@ class mrdcluster : public TObject{
 	// Function to build the information about the paddle positions from a wcsim output file
 	static int StripMrdPositions();	// fills the member vectors paddle_*** 
 };
-#include "StripMrdPositions.cxx"	// function to pull information about paddle positions from file
+#include "MRDCluster_StripMrdPositions.cxx"	// function to pull information about paddle positions from file
 Int_t mrdcluster::clustercounter=0;
 Bool_t mrdcluster::fillstaticmembers=true;
 std::vector<Int_t> mrdcluster::paddle_orientations(MRDSpecs::nummrdpmts);
