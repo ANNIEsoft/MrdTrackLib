@@ -1,5 +1,7 @@
 {
 TString compilerflags = "-fdiagnostics-color=always -Wno-sign-compare";
+gSystem->SetFlagsOpt(compilerflags.Data());
+gSystem->SetFlagsDebug(compilerflags.Data());
 TString pwd = gSystem->Getenv("PWD");
 
 gInterpreter->AddIncludePath(pwd);
