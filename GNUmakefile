@@ -10,5 +10,5 @@ libMrdTrack.so :
 	@root -l -b -q $(PWD)/makelib.CC
 
 clean :
-	@rm -f MakeMrdTrackClasses_cxx.so
-	@rm -f MakeMrdTrackClasses_cxx_ACLiC_dict_rdict.pcm
+	@rm -f libMakeMrdTrackClasses_cxx.so
+	@rm -f libMakeMrdTrackClasses_cxx_ACLiC_dict_rdict.pcm
