@@ -1,10 +1,10 @@
 /* vim:set noexpandtab tabstop=4 wrap */
-#ifndef MRDTrack_VERBOSE
+//#ifndef MRDTrack_VERBOSE
 //#define MRDTrack_VERBOSE 1
-#endif
+//#endif
 
 #ifndef _MRDTrack_Class_
-#define _MRDTrack_Class_ 1
+#define _MRDTrack_Class_ 
 
 #include <TObject.h>
 #include "Math/Vector3D.h"
@@ -13,12 +13,14 @@
 #include "TText.h"
 #include "TBox.h"
 #include "TCanvas.h"
+#include "TMath.h"
 #include "TAxis.h"
 #include "TGraph.h"
 #include "TGraphErrors.h"
 #include "TF1.h"
 #include "TFitResult.h"
 #include "TMinuit.h"
+#include "TArrow.h"
 #include "TMatrixD.h"
 #include "TVirtualFitter.h"
 #include "Math/GenVector/PxPyPzE4D.h"
@@ -29,12 +31,17 @@
 #include <map>
 #include "MRDspecs.hh"
 #include "MRDSubEvent_ReconstructionClasses.hh"
+#include <iostream>
 
-class cMRDTrack : public TObject {
+//using namespace std;
+
+class cMRDTrack {
+//: public TObject {
 	
 	// Private members
 	// ===============
 	public:	//TODO public for copy constructor
+  cMRDTrack(){};
 	Int_t MRDtrackID;						// ID of this track within the trigger
 	Int_t tanktrackID;						// correlated tank track within the trigger
 	
@@ -259,14 +266,14 @@ class cMRDTrack : public TObject {
 	// ====================
 	public:
 	// Default constructor that initialises all private members required for ROOT classes
-	cMRDTrack() : MRDtrackID(-1), wcsimfile(""), run_id(-1), event_id(-1), trigger(-1), mrdsubevent_id(-1), digi_ids(), pmts_hit(), digi_qs(), digi_ts(), digi_numphots(), digi_phot_ts(), digi_phot_parents(), tanktrackID(-1), layers_hit(), eDepsInLayers(), KEStart(-1.), KEEnd(-1.), particlePID(-1), trueTrackID(-1), htrackcells(), vtrackcells(), htrackorigin(-1), htrackoriginerror(-1), htrackgradient(-1), htrackgradienterror(-1), htrackfitchi2(-1), vtrackorigin(-1), vtrackoriginerror(-1), vtrackgradient(-1), vtrackgradienterror(-1), vtrackfitchi2(-1), trackfitstart(TVector3(0,0,0)), trackfitstop(TVector3(0,0,0)), ispenetrating(false), isstopped(false), sideexit(false), penetrationdepth(-1), EnergyLoss(-1), projectedtankexitpoint(TVector3(0,0,0)), interceptstank(false), trackangle(-1.), EnergyLossError(-1), trackangleerror(-1), mrdentryxbounds(), mrdentryybounds(), extravpoints(), extravpointerrors(), extrahpoints(), extrahpointerrors(), extrazpoints(), extrazpointerrors() {};
+  //	cMRDTrack() : MRDtrackID(-1), wcsimfile(""), run_id(-1), event_id(-1), trigger(-1), mrdsubevent_id(-1), digi_ids(), pmts_hit(), digi_qs(), digi_ts(), digi_numphots(), digi_phot_ts(), digi_phot_parents(), tanktrackID(-1), layers_hit(), eDepsInLayers(), KEStart(-1.), KEEnd(-1.), particlePID(-1), trueTrackID(-1), htrackcells(), vtrackcells(), htrackorigin(-1), htrackoriginerror(-1), htrackgradient(-1), htrackgradienterror(-1), htrackfitchi2(-1), vtrackorigin(-1), vtrackoriginerror(-1), vtrackgradient(-1), vtrackgradienterror(-1), vtrackfitchi2(-1), trackfitstart(TVector3(0,0,0)), trackfitstop(TVector3(0,0,0)), ispenetrating(false), isstopped(false), sideexit(false), penetrationdepth(-1), EnergyLoss(-1), projectedtankexitpoint(TVector3(0,0,0)), interceptstank(false), trackangle(-1.), EnergyLossError(-1), trackangleerror(-1), mrdentryxbounds(), mrdentryybounds(), extravpoints(), extravpointerrors(), extrahpoints(), extrahpointerrors(), extrazpoints(), extrazpointerrors() {};
 	
 	// destructor
-	~cMRDTrack(){cout<<"cMRDTrack destructor (no actions here)"<<endl;}
+  //	~cMRDTrack(){std::cout<<"cMRDTrack destructor (no actions here)"<<std::endl;}
 	
 	// Actual Constructor
 	// ==================
-	cMRDTrack(Int_t mrdtrackidin, std::string wcsimefilein, Int_t runidin, Int_t eventidin, Int_t subeventidin,
+  	cMRDTrack(Int_t mrdtrackidin, std::string wcsimefilein, Int_t runidin, Int_t eventidin, Int_t subeventidin,
 	Int_t triggerin, std::vector<Int_t> digitidsin, std::vector<Int_t> digittubesin, std::vector<Double_t>
 	digitqsin, std::vector<Double_t> digittimesin, std::vector<Int_t> digitnumphotsin, std::vector<Double_t> 
 	digitstruetimesin, std::vector<Int_t> digitsparentsin, std::vector<mrdcell> htrackcellsin, 
@@ -294,30 +301,30 @@ class cMRDTrack : public TObject {
 	}
 	
 #ifdef MRDTrack_VERBOSE
-		cout<<endl<<"constructing a track with "<<digi_ids.size()<<" digits"<<endl;
+		std::cout<<std::endl<<"constructing a track with "<<digi_ids.size()<<" digits"<<std::endl;
 #endif
 		eDepsInLayers.assign(MRDSpecs::numpanels, 0.);	// can't assign the size in the class def. 
 		DoReconstruction();
 		
 		if((ispenetrating&&isstopped)||(ispenetrating&&sideexit)||(isstopped&&sideexit)){
-			cerr<<"ERROR!"<<endl<<"ispenetrating="<<ispenetrating<<", isstopped="<<isstopped<<", sideexit="<<sideexit<<endl;
+			std::cerr<<"ERROR!"<<std::endl<<"ispenetrating="<<ispenetrating<<", isstopped="<<isstopped<<", sideexit="<<sideexit<<std::endl;
 			assert(false);
 		}
 		if(trackfitstart.X()<1.&&trackfitstart.Y()<1&&trackfitstart.Z()<1){
-			cerr<<"POSSIBLE ERROR!"<<endl<<"Track fit start = ("
-				<<trackfitstart.X()<<", "<<trackfitstart.Y()<<", "<<trackfitstart.Z()<<")"<<endl;
+			std::cerr<<"POSSIBLE ERROR!"<<std::endl<<"Track fit start = ("
+				<<trackfitstart.X()<<", "<<trackfitstart.Y()<<", "<<trackfitstart.Z()<<")"<<std::endl;
 			assert(false);
 		}
 		if(trackfitstop.X()<1.&&trackfitstop.Y()<1&&trackfitstop.Z()<1){
-			cerr<<"POSSIBLE ERROR!"<<endl<<"Track fit stop = ("
-				<<trackfitstop.X()<<", "<<trackfitstop.Y()<<", "<<trackfitstop.Z()<<")"<<endl;
+			std::cerr<<"POSSIBLE ERROR!"<<std::endl<<"Track fit stop = ("
+				<<trackfitstop.X()<<", "<<trackfitstop.Y()<<", "<<trackfitstop.Z()<<")"<<std::endl;
 			assert(false);
 		}
 	}
 	
 	// Copy Constructor
 	// ================
-	cMRDTrack(cMRDTrack const &trackin) :
+	/*cMRDTrack(cMRDTrack const &trackin) :
 	MRDtrackID(trackin.MRDtrackID), wcsimfile(trackin.wcsimfile), run_id(trackin.run_id),
 	event_id(trackin.event_id), mrdsubevent_id(trackin.mrdsubevent_id), trigger(trackin.trigger),
 	digi_ids(trackin.digi_ids), pmts_hit(trackin.pmts_hit), digi_qs(trackin.digi_qs), digi_ts(trackin.digi_ts),
@@ -341,38 +348,39 @@ class cMRDTrack : public TObject {
 	mrdentryybounds(trackin.mrdentryybounds), extravpoints(trackin.extravpoints), 
 	extravpointerrors(trackin.extravpointerrors), extrahpoints(trackin.extrahpoints), 
 	extrahpointerrors(trackin.extrahpointerrors), extrazpoints(trackin.extrazpoints), 
-	extrazpointerrors(trackin.extrazpointerrors)
-	/*, digits(trackin.digits), trueTrack(trackin.trueTrack)*/ 
-	{
+	extrazpointerrors(trackin.extrazpointerrors){
+	//, digits(trackin.digits), trueTrack(trackin.trueTrack) 
+	
 #ifdef MRDTrack_VERBOSE
-		cout<<endl<<"copy constructing a track with "<<digi_ids.size()<<" digits"<<endl;
+		std::cout<<std::endl<<"copy constructing a track with "<<digi_ids.size()<<" digits"<<std::endl;
 #endif
 	}
-	
+	*/
 	// End class definition
 	// ====================
-	ClassDef(cMRDTrack,1);					// INCREMENT VERSION NUM EVERY TIME CLASS MEMBERS CHANGE
+//ClassDef(cMRDTrack,1);					// INCREMENT VERSION NUM EVERY TIME CLASS MEMBERS CHANGE
 };
-TF1 cMRDTrack::MRDenergyvspenetration=TF1("af","expo(0)+pol0(2)+([3]/([4]-x))",0,1.6);
+//TF1 cMRDTrack::MRDenergyvspenetration=TF1("af","expo(0)+pol0(2)+([3]/([4]-x))",0,1.6);
 //  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
 //   1  p0          -3.62645e+00   2.40923e+01   2.22710e-04   8.81482e-04
 //   2  p1           3.75503e+00   1.56841e+01   1.89877e-04   8.82181e-04
 //   3  p2           2.68525e+00   7.79532e+00   1.11828e-04   6.30502e-04
 //   4  p3           3.59244e+00   1.46368e+01   1.30963e-04   1.08201e-03
 //   5  p4           1.66969e+00   6.49103e-01   2.51472e-05  -6.46072e-03
-Bool_t cMRDTrack::fillstaticmembers=true;
+//Bool_t cMRDTrack::fillstaticmembers=true;
 
-
+/*
 #include "MRDTrack_DoReconstruction.cxx"	// contains reconstruction function definitions
 #include "MRDTrack_Draw_Print.cxx"			// contains definition of print and drawing functions
+*/
 
-#ifdef __CINT__
-#pragma link C++ class cMRDTrack+;
+//#ifdef __CINT__
+//#pragma link C++ class cMRDTrack+;
 //#pragma link C++ class ROOT::Math::XYZTVector+;
 //#pragma link C++ class std::vector<ROOT::Math::XYZTVector>+;
 //#pragma link C++ class cMRDStrike+;
-#pragma link C++ class std::vector<cMRDStrike>+;
-#endif
+//#pragma link C++ class std::vector<cMRDStrike>+;
+//#endif
 
 #endif
 

@@ -1,10 +1,12 @@
 /* vim:set noexpandtab tabstop=4 wrap */
-#ifndef MRDSUBEVENTDRAWTRUETRACKS
-#define MRDSUBEVENTDRAWTRUETRACKS
+//#ifndef MRDSUBEVENTDRAWTRUETRACKS
+//#define MRDSUBEVENTDRAWTRUETRACKS
 
 #ifndef DRAWTRUEVERBOSE
-//#define DRAWTRUEVERBOSE
+#define DRAWTRUEVERBOSE
 #endif
+
+#include <MRDSubEventClass.hh>
 
 bool CheckLineBox( TVector3 L1, TVector3 L2, TVector3 B1, TVector3 B2, TVector3 &Hit, TVector3 &Hit2, bool &error);
 int inline InBox( TVector3 Hit, TVector3 B1, TVector3 B2, const int Axis);
@@ -18,11 +20,11 @@ void cMRDSubEvent::DrawTrueTracks(){
 	// we have std::vector<TArrow*> truetrackarrows; to add the arrows to
 	
 #ifdef DRAWTRUEVERBOSE
-	cout<<"MRD width is "<<MRDSpecs::MRD_width<<", MRDSpecs::maxwidth is "<<(MRDSpecs::maxwidth/2.)<<", MRD height is "<<MRDSpecs::MRD_height<<", MRDSpecs::maxheight is "<<(MRDSpecs::maxheight/2.)<<", MRD start is "<<MRDSpecs::MRD_start<<", MRD end is "<<(MRDSpecs::MRD_start+MRDSpecs::MRD_depth)<<", MRD depth is "<<(MRDSpecs::MRD_depth/2.)<<", MRDSpecs::mrdZlen is "<<(MRDSpecs::mrdZlen/2.)<<endl;
+	std::cout<<"MRD width is "<<MRDSpecs::MRD_width<<", MRDSpecs::maxwidth is "<<(MRDSpecs::maxwidth/2.)<<", MRD height is "<<MRDSpecs::MRD_height<<", MRDSpecs::maxheight is "<<(MRDSpecs::maxheight/2.)<<", MRD start is "<<MRDSpecs::MRD_start<<", MRD end is "<<(MRDSpecs::MRD_start+MRDSpecs::MRD_depth)<<", MRD depth is "<<(MRDSpecs::MRD_depth/2.)<<", MRDSpecs::mrdZlen is "<<(MRDSpecs::mrdZlen/2.)<<std::endl;
 #endif
 	
 #ifdef DRAWTRUEVERBOSE
-	cout<<"Adding lines for "<<truetracks.size()<<" true tracks"<<endl;
+	//	std::cout<<"Adding lines for "<<truetracks.size()<<" true tracks"<<std::endl;
 #endif
 	
 	int trackit=0;
@@ -65,23 +67,23 @@ void cMRDSubEvent::DrawTrueTracks(){
 		// skip the easy ones
 		if(primarystopvertex.Z()<MRDSpecs::MRD_start){
 #ifdef DRAWTRUEVERBOSE
-			cout<<"skipping track "<<trackit<<" as it doesn't make it to mrd: trackstopz="
-				<<primarystopvertex.Z()<<", MRDSpecs::MRD_start="<<MRDSpecs::MRD_start<<endl;
+			std::cout<<"skipping track "<<trackit<<" as it doesn't make it to mrd: trackstopz="
+				<<primarystopvertex.Z()<<", MRDSpecs::MRD_start="<<MRDSpecs::MRD_start<<std::endl;
 #endif
 			continue;
 		}  // the track never makes it to the MRD
 		if(primarystopvertex.Z()>(MRDSpecs::MRD_start+MRDSpecs::MRD_depth)){
 #ifdef DRAWTRUEVERBOSE
-			cout<<"skipping track "<<trackit<<" as it starts after mrd: trackstartz="
-				<<primarystopvertex.Z()<<", MRDSpecs::MRD_start+MRDSpecs::MRD_depth="<<MRDSpecs::MRD_start+MRDSpecs::MRD_depth<<endl;
+			std::cout<<"skipping track "<<trackit<<" as it starts after mrd: trackstartz="
+				<<primarystopvertex.Z()<<", MRDSpecs::MRD_start+MRDSpecs::MRD_depth="<<MRDSpecs::MRD_start+MRDSpecs::MRD_depth<<std::endl;
 #endif
 			continue;
 		} // the track is somehow created after the MRD
 
 #ifdef DRAWTRUEVERBOSE
-		cout<<"Track start: ("<<primarystartvertex.X()<<", "<<primarystartvertex.Y()
+		std::cout<<"Track start: ("<<primarystartvertex.X()<<", "<<primarystartvertex.Y()
 			<<", "<<primarystartvertex.Z()<<"), track end: ("<<primarystopvertex.X()
-			<<", "<<primarystopvertex.Y()<<", "<<primarystopvertex.Z()<<")"<<endl;
+			<<", "<<primarystopvertex.Y()<<", "<<primarystopvertex.Z()<<")"<<std::endl;
 #endif
 		//new MRD entry/exit point calculation based on external function calls
 		///////////////////////////////////////////////////////////////////////
@@ -129,7 +131,7 @@ void cMRDSubEvent::DrawTrueTracks(){
 		// old stuff needed for backward compatibility with remainder of code
 		bool trackisbackwardgoing=false;
 		double frontx,fronty,backz,backx,backy;
-		double frontz=min(primarystartvertex.Z(),primarystopvertex.Z());
+		double frontz=std::min(primarystartvertex.Z(),primarystopvertex.Z());
 		if(frontz==primarystartvertex.Z()){
 			frontx=primarystartvertex.X();
 			fronty=primarystartvertex.Y();
@@ -157,14 +159,14 @@ void cMRDSubEvent::DrawTrueTracks(){
 		mrdexity=MRDexitpoint.Y();
 		mrdexitz=MRDexitpoint.Z();
 #ifdef DRAWTRUEVERBOSE
-		cout<<"MRD entry and exit points are:"<<endl
+		std::cout<<"MRD entry and exit points are:"<<std::endl
 			<<"("<<mrdentryx<<", "<<mrdentryy<<", "<<mrdentryz<<") to "
-			<<"("<<mrdexitx<<", "<<mrdexity<<", "<<mrdexitz<<")"<<endl;
+			<<"("<<mrdexitx<<", "<<mrdexity<<", "<<mrdexitz<<")"<<std::endl;
 #endif
 		
 		if(trackisbackwardgoing){
 #ifdef DRAWTRUEVERBOSE
-			cout<<"switching entry and exit points as track is backward going"<<endl;
+			std::cout<<"switching entry and exit points as track is backward going"<<std::endl;
 #endif
 			double tempx = mrdentryx;
 			double tempy = mrdentryy;
@@ -182,10 +184,10 @@ void cMRDSubEvent::DrawTrueTracks(){
 		mrdentryz -= (MRDSpecs::MRD_start+(MRDSpecs::MRD_depth/2.));
 		mrdexitz -= (MRDSpecs::MRD_start+(MRDSpecs::MRD_depth/2.));
 #ifdef DRAWTRUEVERBOSE
-		cout<<"shifting z axis; new entry and exit points are "<<mrdentryz<<" and "<<mrdexitz<<endl;
-		cout<<"entry and exit points in terms of mrd width, height and depth are: ("
+		std::cout<<"shifting z axis; new entry and exit points are "<<mrdentryz<<" and "<<mrdexitz<<std::endl;
+		std::cout<<"entry and exit points in terms of mrd width, height and depth are: ("
 			<<(mrdentryx/MRDSpecs::maxwidth)<<", "<<(mrdentryy/MRDSpecs::maxheight)<<", "<<(mrdentryz/MRDSpecs::mrdZlen)<<") -> ("
-			<<(mrdexitx/MRDSpecs::maxwidth)<<", "<<(mrdexity/MRDSpecs::maxheight)<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<endl;
+			<<(mrdexitx/MRDSpecs::maxwidth)<<", "<<(mrdexity/MRDSpecs::maxheight)<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<std::endl;
 #endif
 		
 		//============================================================
@@ -212,9 +214,9 @@ void cMRDSubEvent::DrawTrueTracks(){
 		mrdentryy*=yscalefactor;
 		mrdexity*=yscalefactor;
 #ifdef DRAWTRUEVERBOSE
-		cout<<"scaled entry and exit points in terms of mrd width, height and depth are: ("
+		std::cout<<"scaled entry and exit points in terms of mrd width, height and depth are: ("
 			<<(mrdentryx/MRDSpecs::maxwidth)<<", "<<(mrdentryy/MRDSpecs::maxheight)<<", "<<(mrdentryz/MRDSpecs::mrdZlen)<<") -> ("
-			<<(mrdexitx/MRDSpecs::maxwidth)<<", "<<(mrdexity/MRDSpecs::maxheight)<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<endl;
+			<<(mrdexitx/MRDSpecs::maxwidth)<<", "<<(mrdexity/MRDSpecs::maxheight)<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<std::endl;
 #endif
 		
 		// one last thing: the beam comes from the left. In the top view, right-hand-side (x>0)
@@ -306,8 +308,8 @@ void cMRDSubEvent::DrawTrueTracks(){
 			imgcanvas->cd(2);  // top view for x positions
 			myarrow->Draw();
 #ifdef DRAWTRUEVERBOSE
-			cout<<"drawing top view truth track arrow from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()
-				<<" to "<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<endl;
+			std::cout<<"drawing top view truth track arrow from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()
+				<<" to "<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<std::endl;
 #endif
 			truetrackarrows.push_back(myarrow);
 			
@@ -321,8 +323,8 @@ void cMRDSubEvent::DrawTrueTracks(){
 				myarrow->SetLineStyle(7);  //dashed
 				myarrow->Draw();
 #ifdef DRAWTRUEVERBOSE
-				cout<<"drawing line from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
-					<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<endl;
+				std::cout<<"drawing line from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
+					<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<std::endl;
 #endif
 				truetrackarrows.push_back(myarrow);
 			}
@@ -352,8 +354,8 @@ void cMRDSubEvent::DrawTrueTracks(){
 			imgcanvas->cd(1);  // side view for y positions
 			myarrow->Draw();
 #ifdef DRAWTRUEVERBOSE
-			cout<<"drawing side view truth track arrow from "<<myarrow->GetX1()<<", "
-			<<myarrow->GetY1()<<" to "<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<endl;
+			std::cout<<"drawing side view truth track arrow from "<<myarrow->GetX1()<<", "
+			<<myarrow->GetY1()<<" to "<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<std::endl;
 #endif
 			truetrackarrows.push_back(myarrow);
 			
@@ -367,8 +369,8 @@ void cMRDSubEvent::DrawTrueTracks(){
 				myarrow->SetLineStyle(7);  //dashed
 				myarrow->Draw();
 #ifdef DRAWTRUEVERBOSE
-				cout<<"drawing line from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
-					<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<endl;
+				std::cout<<"drawing line from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
+					<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<std::endl;
 #endif
 				truetrackarrows.push_back(myarrow);
 			}
@@ -474,9 +476,9 @@ bool CheckLineBox( TVector3 L1, TVector3 L2, TVector3 B1, TVector3 B2, TVector3 
 	if(thisinterception){ interceptions.push_back(Hit); anyinterception=true; }
 
 	if((interceptions.size()>2)||(startsinmrd&&interceptions.size()==2)){
-		cerr<<"CheckLineBox found more than two intercepts?! Or 2 intercepts but starts in MRD?? Intercepts at:"<<endl;
+		std::cerr<<"CheckLineBox found more than two intercepts?! Or 2 intercepts but starts in MRD?? Intercepts at:"<<std::endl;
 		for(auto&& avec : interceptions)
-			cerr<<"("<<avec.X()<<", "<<avec.Y()<<", "<<avec.Z()<<")"<<endl;
+			std::cerr<<"("<<avec.X()<<", "<<avec.Y()<<", "<<avec.Z()<<")"<<std::endl;
 		error=true;
 		//assert(false); // leave for later so we can print debug info.
 		return false;
@@ -499,7 +501,7 @@ bool CheckLineBox( TVector3 L1, TVector3 L2, TVector3 B1, TVector3 B2, TVector3 
 			Hit = L1;
 			Hit=interceptions.at(0);
 		} else {
-			cerr<<"only one intercept found, but track neither starts nor stops in mrd??"<<endl;
+			std::cerr<<"only one intercept found, but track neither starts nor stops in mrd??"<<std::endl;
 			error=true;
 			return false;
 		}
@@ -509,4 +511,4 @@ bool CheckLineBox( TVector3 L1, TVector3 L2, TVector3 B1, TVector3 B2, TVector3 
 	}
 }
 
-#endif
+//#endif

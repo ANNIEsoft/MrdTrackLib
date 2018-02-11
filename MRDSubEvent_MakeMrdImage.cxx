@@ -4,14 +4,16 @@
 #include "TBox.h"
 #include "TLine.h"
 #include "TArrow.h"
+#include <MRDSubEventClass.hh>
 
-#ifndef DRAWVERBOSE
+
+//#ifndef DRAWVERBOSE
 //#define DRAWVERBOSE 1
-#endif
+//#endif
 
-#ifndef DRAWSUPERVERBOSE
+//#ifndef DRAWSUPERVERBOSE
 //#define DRAWSUPERVERBOSE 1
-#endif
+//#endif
 
 void cMRDSubEvent::DrawMrdCanvases(){
 #ifdef DRAWVERBOSE

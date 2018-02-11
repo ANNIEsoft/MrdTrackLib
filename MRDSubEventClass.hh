@@ -1,10 +1,10 @@
 /* vim:set noexpandtab tabstop=4 wrap */
 #ifndef _MRDSubEvent_Class_
-#define _MRDSubEvent_Class_ 1
+#define _MRDSubEvent_Class_ 
 
-#ifndef _MRDSubEvent_VERBOSE_
+//#ifndef _MRDSubEvent_VERBOSE_
 //#define _MRDSubEvent_VERBOSE_ 1
-#endif
+//#endif
 
 #include <TObject.h>
 #include "Math/Vector3D.h"
@@ -165,7 +165,7 @@ class cMRDSubEvent : public TObject {
 	// destructor
 	~cMRDSubEvent(){
 #ifdef _MRDSubEvent_VERBOSE_
-		cout<<"cMRDSubEvent destructor"<<endl;
+		std::cout<<"cMRDSubEvent destructor"<<std::endl;;
 #endif
 		RemoveArrows();
 	}
@@ -190,7 +190,7 @@ class cMRDSubEvent : public TObject {
 		
 		
 #ifdef _MRDSubEvent_VERBOSE_
-		cout<<endl<<"constructing a subevent with "<<digi_ids.size()<<" digits"<<endl;
+		std::cout<<std::endl;<<"constructing a subevent with "<<digi_ids.size()<<" digits"<<std::endl;;
 #endif
 		if(fillstaticmembers) FillStaticMembers();
 		
@@ -204,9 +204,9 @@ class cMRDSubEvent : public TObject {
 		if(drawtruetracks) DrawTrueTracks();   // draws true tracks over the event
 		DoReconstruction(printtracks, drawcells, drawfit); // adds the tracks to the canvas
 		if(saveimage) imgcanvas->SaveAs(TString::Format("mrdtracks_%d.png",event_id));
-		//cout<<"sleeping for 5 seconds to analyse output"<<endl;
+		//std::cout<<"sleeping for 5 seconds to analyse output"<<std::endl;;
 		//if(tracksthissubevent.size()) std::this_thread::sleep_for (std::chrono::seconds(15));
-		//cout<<"moving to next event"<<endl;
+		//std::cout<<"moving to next event"<<std::endl;;
 		//gPad->WaitPrimitive();
 		RemoveArrows();		// removes true and reco track arrows so the canvas can be re-used
 		//assert(false);
@@ -248,7 +248,7 @@ class cMRDSubEvent : public TObject {
 	// Required by ROOT
 	// ================
 	void Clear(){
-		cout<<"calling clear on cMRDSubEvent "<<mrdsubevent_id<<endl;
+		std::cout<<"calling clear on cMRDSubEvent "<<mrdsubevent_id<<std::endl;;
 		mrdsubevent_id=-1;
 		wcsimfile="";
 		run_id=-1;
@@ -275,6 +275,7 @@ class cMRDSubEvent : public TObject {
 	ClassDef(cMRDSubEvent,1);					// INCREMENT VERSION NUM EVERY TIME CLASS MEMBERS CHANGE
 };
 
+/*
 Bool_t cMRDSubEvent::fillstaticmembers=true;
 TCanvas* cMRDSubEvent::imgcanvas=0;
 TText* cMRDSubEvent::titleleft=0;
@@ -287,16 +288,18 @@ std::vector<TBox*> cMRDSubEvent::paddlepointers(MRDSpecs::nummrdpmts+(2*MRDSpecs
 std::vector<Int_t> cMRDSubEvent::aspectrumv{1435, 1436, 1437, 1438, 1439, 1440, 1441, 1442, 1443, 1443, 1444, 1445, 885, 1446, 1447, 1448, 879, 1449, 1450};
 std::vector<std::string> cMRDSubEvent::colorhexes{"#21ffff", "#20deea", "#1fbcd5", "#21a8cd", "#269bcb", "#2b8fca", "#367fcb", "#416fcb", "#4965cd", "#505dcf", "#5855d0", "#6247cf", "#6d3ace", "#782acd", "#851acc", "#910dcc", "#9e07cd", "#aa00ce", "#bf00d7"};
 std::vector<EColor> cMRDSubEvent::trackcolours{kBlack, kBlue, (EColor)TColor::GetColorDark(kGreen), kRed, kViolet, kOrange, kMagenta,(EColor)(kAzure+2),(EColor)(kOrange+4),(EColor)(kViolet-6),(EColor)(kTeal-6)};
-
+*/
+/*
 #include "MRDSubEvent_DoReconstruction.cxx"			// contains reconstruction function definitions
 #include "MRDSubEvent_MakeMrdImage.cxx"			// functions to draw the MRD top and side views
 #include "MRDSubEvent_DrawTruthTracks.cxx"			// contains the function to draw truth tracks
 #include "MRDSubEvent_Draw_Print.cxx"				// contains the print function
+*/
 
 #endif
 
-#ifdef __CINT__
-#pragma link C++ class cMRDSubEvent+;
+//#ifdef __CINT__
+//#pragma link C++ class cMRDSubEvent+;
 //#pragma link C++ class ROOT::Math::XYZTVector+;
 //#pragma link C++ class std::vector<ROOT::Math::XYZTVector>+;
-#endif
+//#endif

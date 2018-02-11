@@ -1,12 +1,13 @@
 /* vim:set noexpandtab tabstop=4 wrap */
 #ifndef _cMRD_reconstruction_classes
-#define _cMRD_reconstruction_classes 1
+#define _cMRD_reconstruction_classes 
 
 #include "MRDspecs.hh"
+#include <TVector.h>
 
-#ifdef __MAKECINT__
-#pragma link C++ class std::pair<mrdcluster*,mrdcluster*>+;
-#endif
+//#ifdef __MAKECINT__
+//#pragma link C++ class std::pair<mrdcluster*,mrdcluster*>+;
+//#endif
 // supporting classes used in DoReconstruction cellular algorithm version (cMRDTrack_DoReconstruction2.cxx)
 // 1. define a cluster, by an id and it's position
 class mrdcluster : public TObject{
@@ -149,8 +150,8 @@ class mrdcluster : public TObject{
 	// Function to build the information about the paddle positions from a wcsim output file
 	static int StripMrdPositions();	// fills the member vectors paddle_*** 
 };
-#include "MRDCluster_StripMrdPositions.cxx"	// function to pull information about paddle positions from file
-Int_t mrdcluster::clustercounter=0;
+//#include "MRDCluster_StripMrdPositions.cxx"	// function to pull information about paddle positions from file
+/*Int_t mrdcluster::clustercounter=0;
 Bool_t mrdcluster::fillstaticmembers=true;
 std::vector<Int_t> mrdcluster::paddle_orientations(MRDSpecs::nummrdpmts);
 std::vector<Int_t> mrdcluster::paddle_layers(MRDSpecs::nummrdpmts);
@@ -161,6 +162,7 @@ std::vector<std::pair<Double_t,Double_t> > mrdcluster::paddle_extentsx(MRDSpecs:
 std::vector<std::pair<Double_t,Double_t> > mrdcluster::paddle_extentsy(MRDSpecs::nummrdpmts);
 std::vector<std::pair<Double_t,Double_t> > mrdcluster::paddle_extentsz(MRDSpecs::nummrdpmts);
 int nothing = mrdcluster::StripMrdPositions();
+*/
 // FIXME: RESULTS RETURNED FROM STRIPMRDPOSITIONS ARE IN MM!
 // EVERYTHING ELSE HERE IS IN CM. THIS IS CONFUSING.
 
@@ -215,5 +217,5 @@ class mrdcell : public TObject{
 	// destructor
 	~mrdcell(){}
 };
-Int_t mrdcell::cellcounter=0;
+//Int_t mrdcell::cellcounter=0;
 #endif

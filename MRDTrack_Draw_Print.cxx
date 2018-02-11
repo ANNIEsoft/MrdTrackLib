@@ -1,47 +1,49 @@
 /* vim:set noexpandtab tabstop=4 wrap */
 
+#include <MRDTrackClass.hh>
+
 void cMRDTrack::Print2(){					// a more generic print
 
-cout<<"NEXT MRD TRACK"<<endl
-	<<"wcsimfile: "<<wcsimfile<<endl
+std::cout<<"NEXT MRD TRACK"<<std::endl
+	<<"wcsimfile: "<<wcsimfile<<std::endl
 	<<"run: "<<run_id<<", event: "<<event_id<<", trigger: "<<trigger<<", mrdsubevent: "<<mrdsubevent_id
-	<<", track: "<<MRDtrackID<<endl
-	<<"num digits: "<<digi_ids.size()<<endl
-	<<"num pmts hit: "<<pmts_hit.size()<<endl
+	<<", track: "<<MRDtrackID<<std::endl
+	<<"num digits: "<<digi_ids.size()<<std::endl
+	<<"num pmts hit: "<<pmts_hit.size()<<std::endl
 	<<"digit times: ";
-	for(auto atime : digi_ts) cout<<atime<<", ";
-cout<<endl<<"digit charges: ";
-	for(auto acharge : digi_qs) cout<<acharge<<", ";
-cout<<endl<<"layers hit: ";
-	for(auto alayer : layers_hit) cout<<alayer<<", ";
-cout<<endl<<"energy deposited: ";
-	for(auto aqdeposit : eDepsInLayers) cout<<aqdeposit<<", ";
-cout<<endl<<"track ";
-	if(ispenetrating) cout<<"fully penetrates mrd"<<endl;
-	if(isstopped) cout<<"stops within mrd"<<endl;
-	if(sideexit) cout<<"exits side of mrd"<<endl;
-cout<<"side view clusters: "<<htrackclusters.size()<<endl
-	<<"top view clusters: "<<vtrackclusters.size()<<endl;
-cout<<"total track length: "<<mutracklengthinMRD<<endl
-	<<"penetration depth: "<<penetrationdepth<<endl
-	<<"energy loss: "<<EnergyLoss<<", error: "<<EnergyLossError<<endl
+	for(auto atime : digi_ts) std::cout<<atime<<", ";
+std::cout<<std::endl<<"digit charges: ";
+	for(auto acharge : digi_qs) std::cout<<acharge<<", ";
+std::cout<<std::endl<<"layers hit: ";
+	for(auto alayer : layers_hit) std::cout<<alayer<<", ";
+std::cout<<std::endl<<"energy deposited: ";
+	for(auto aqdeposit : eDepsInLayers) std::cout<<aqdeposit<<", ";
+std::cout<<std::endl<<"track ";
+	if(ispenetrating) std::cout<<"fully penetrates mrd"<<std::endl;
+	if(isstopped) std::cout<<"stops within mrd"<<std::endl;
+	if(sideexit) std::cout<<"exits side of mrd"<<std::endl;
+std::cout<<"side view clusters: "<<htrackclusters.size()<<std::endl
+	<<"top view clusters: "<<vtrackclusters.size()<<std::endl;
+std::cout<<"total track length: "<<mutracklengthinMRD<<std::endl
+	<<"penetration depth: "<<penetrationdepth<<std::endl
+	<<"energy loss: "<<EnergyLoss<<", error: "<<EnergyLossError<<std::endl
 	<<"track start: ("<<trackfitstart.X()<<", "<<trackfitstart.Y()<<", "<<trackfitstart.Z()
-	<<"), track end: ("<<trackfitstop.X()<<", "<<trackfitstop.Y()<<", "<<trackfitstop.Z()<<")"<<endl
+	<<"), track end: ("<<trackfitstop.X()<<", "<<trackfitstop.Y()<<", "<<trackfitstop.Z()<<")"<<std::endl
 	<<"h origin: "<<htrackorigin<<", error: "<<htrackoriginerror
-	<<", gradient: "<<htrackgradient<<", error: "<<htrackgradienterror<<endl
+	<<", gradient: "<<htrackgradient<<", error: "<<htrackgradienterror<<std::endl
 	<<"v origin: "<<vtrackorigin<<", error: "<<vtrackoriginerror
-	<<", gradient: "<<vtrackgradient<<", error: "<<vtrackgradienterror<<endl
-	<<"fit chi2: "<<htrackfitchi2<<", "<<vtrackfitchi2<<endl
-	<<"angle from z: "<<trackangle<<", error: "<<trackangleerror<<endl
+	<<", gradient: "<<vtrackgradient<<", error: "<<vtrackgradienterror<<std::endl
+	<<"fit chi2: "<<htrackfitchi2<<", "<<vtrackfitchi2<<std::endl
+	<<"angle from z: "<<trackangle<<", error: "<<trackangleerror<<std::endl
 	<<"back projection ";
-	if(interceptstank) cout<<"intercepts the tank"<<endl;
-	else cout<<"does not intercept the tank"<<endl; 
+	if(interceptstank) std::cout<<"intercepts the tank"<<std::endl;
+	else std::cout<<"does not intercept the tank"<<std::endl; 
 	
 }
 
 void cMRDTrack::Print(){	// a print specific to printing CA algorithm results
 	for(int j=(htrackcells.size()-1); j>-1; j--){
-		cout<<endl;
+		std::cout<<std::endl;
 		mrdcell* acell = &htrackcells.at(j);
 		acell->SetClusterAddresses(htrackclusters);
 		mrdcluster* upcluster = acell->clusters.first;
@@ -53,40 +55,40 @@ void cMRDTrack::Print(){	// a print specific to printing CA algorithm results
 			upcluster=downcluster;
 			downcluster=temp;
 		}
-		cout<<"   cell "<<j<<" goes from cluster "<<upcluster->clusterid<<" in layer "<<upcluster->layer
-			<<" to cluster "<<downcluster->clusterid<<" in layer "<<downcluster->layer<<endl;
+		std::cout<<"   cell "<<j<<" goes from cluster "<<upcluster->clusterid<<" in layer "<<upcluster->layer
+			<<" to cluster "<<downcluster->clusterid<<" in layer "<<downcluster->layer<<std::endl;
 
-		cout<<"      uptrack cluster contains tubes ";
+		std::cout<<"      uptrack cluster contains tubes ";
 		for(int k=0; k<upcluster->in_layer_tubeids.size(); k++){
-			(k!=0) ? cout<<", " : cout<<" ";
-			cout<<upcluster->in_layer_tubeids.at(k);
+			(k!=0) ? std::cout<<", " : std::cout<<" ";
+			std::cout<<upcluster->in_layer_tubeids.at(k);
 		}
-		cout<<endl;
-		cout<<"      maximum in-layer index is "<<upcluster->xmaxid
+		std::cout<<std::endl;
+		std::cout<<"      maximum in-layer index is "<<upcluster->xmaxid
 			<<", minimum in-layer index is "<<upcluster->xminid
-			<<", effective centre index is "<<upcluster->GetCentreIndex()<<endl;
-		cout<<"      physical extent is "<<upcluster->GetXmin()<<" to "<<upcluster->GetXmax()<<endl;
+			<<", effective centre index is "<<upcluster->GetCentreIndex()<<std::endl;
+		std::cout<<"      physical extent is "<<upcluster->GetXmin()<<" to "<<upcluster->GetXmax()<<std::endl;
 
-		cout<<endl;
+		std::cout<<std::endl;
 
-		cout<<"      downtrack cluster contains tubes ";
+		std::cout<<"      downtrack cluster contains tubes ";
 		for(int k=0; k<downcluster->in_layer_tubeids.size(); k++){
-			(k!=0) ? cout<<", " : cout<<" ";
-			cout<<downcluster->in_layer_tubeids.at(k);
+			(k!=0) ? std::cout<<", " : std::cout<<" ";
+			std::cout<<downcluster->in_layer_tubeids.at(k);
 		}
-		cout<<endl;
-		cout<<"      maximum in-layer index is "<<downcluster->xmaxid
+		std::cout<<std::endl;
+		std::cout<<"      maximum in-layer index is "<<downcluster->xmaxid
 			<<", minimum in-layer index is "<<downcluster->xminid
-			<<", effective centre index is "<<downcluster->GetCentreIndex()<<endl;
-		cout<<"      physical extent is "<<downcluster->GetXmin()<<" to "<<downcluster->GetXmax()<<endl;
+			<<", effective centre index is "<<downcluster->GetCentreIndex()<<std::endl;
+		std::cout<<"      physical extent is "<<downcluster->GetXmin()<<" to "<<downcluster->GetXmax()<<std::endl;
 	}
 	// ------------
-	cout<<"vertical track "<<MRDtrackID<<" at "<<&vtrackcells[0]<<" has "
-		<<vtrackcells.size()<<" cells:"<<endl;
+	std::cout<<"vertical track "<<MRDtrackID<<" at "<<&vtrackcells[0]<<" has "
+		<<vtrackcells.size()<<" cells:"<<std::endl;
 	for(int j=(vtrackcells.size()-1); j>-1; j--){
-		cout<<endl;
+		std::cout<<std::endl;
 		mrdcell* acell = &vtrackcells.at(j);
-		cout<<"setting cluster addresses for cell "<<j<<endl;
+		std::cout<<"setting cluster addresses for cell "<<j<<std::endl;
 		acell->SetClusterAddresses(vtrackclusters);
 		mrdcluster* upcluster = acell->clusters.first;
 		mrdcluster* downcluster = acell->clusters.second;
@@ -97,32 +99,32 @@ void cMRDTrack::Print(){	// a print specific to printing CA algorithm results
 			upcluster=downcluster;
 			downcluster=temp;
 		}
-		cout<<"   cell "<<j<<" goes from cluster "<<upcluster->clusterid<<" in layer "<<upcluster->layer
-			<<" to cluster "<<downcluster->clusterid<<" in layer "<<downcluster->layer<<endl;
+		std::cout<<"   cell "<<j<<" goes from cluster "<<upcluster->clusterid<<" in layer "<<upcluster->layer
+			<<" to cluster "<<downcluster->clusterid<<" in layer "<<downcluster->layer<<std::endl;
 
-		cout<<"      uptrack cluster contains tubes ";
+		std::cout<<"      uptrack cluster contains tubes ";
 		for(int k=0; k<upcluster->in_layer_tubeids.size(); k++){
-			(k!=0) ? cout<<", " : cout<<" ";
-			cout<<upcluster->in_layer_tubeids.at(k);
+			(k!=0) ? std::cout<<", " : std::cout<<" ";
+			std::cout<<upcluster->in_layer_tubeids.at(k);
 		}
-		cout<<endl;
-		cout<<"      maximum in-layer index is "<<upcluster->xmaxid
+		std::cout<<std::endl;
+		std::cout<<"      maximum in-layer index is "<<upcluster->xmaxid
 			<<", minimum in-layer index is "<<upcluster->xminid
-			<<", effective centre index is "<<upcluster->GetCentreIndex()<<endl;
-		cout<<"      physical extent is "<<upcluster->GetXmin()<<" to "<<upcluster->GetXmax()<<endl;
+			<<", effective centre index is "<<upcluster->GetCentreIndex()<<std::endl;
+		std::cout<<"      physical extent is "<<upcluster->GetXmin()<<" to "<<upcluster->GetXmax()<<std::endl;
 
-		cout<<endl;
+		std::cout<<std::endl;
 
-		cout<<"      downtrack cluster contains tubes ";
+		std::cout<<"      downtrack cluster contains tubes ";
 		for(int k=0; k<downcluster->in_layer_tubeids.size(); k++){
-			(k!=0) ? cout<<", " : cout<<" ";
-			cout<<downcluster->in_layer_tubeids.at(k);
+			(k!=0) ? std::cout<<", " : std::cout<<" ";
+			std::cout<<downcluster->in_layer_tubeids.at(k);
 		}
-		cout<<endl;
-		cout<<"      maximum in-layer index is "<<downcluster->xmaxid
+		std::cout<<std::endl;
+		std::cout<<"      maximum in-layer index is "<<downcluster->xmaxid
 			<<", minimum in-layer index is "<<downcluster->xminid
-			<<", effective centre index is "<<downcluster->GetCentreIndex()<<endl;
-		cout<<"      physical extent is "<<downcluster->GetXmin()<<" to "<<downcluster->GetXmax()<<endl;
+			<<", effective centre index is "<<downcluster->GetCentreIndex()<<std::endl;
+		std::cout<<"      physical extent is "<<downcluster->GetXmin()<<" to "<<downcluster->GetXmax()<<std::endl;
 	}
 }
 
@@ -143,7 +145,7 @@ void cMRDTrack::DrawReco(TCanvas* imgcanvas, std::vector<TArrow*> &trackarrows, 
 		TBox* uptopbox = paddlepointers.at(uptubetopid);
 		TBox* upbottombox = paddlepointers.at(uptubebottomid);
 		if(uptopbox==0||upbottombox==0){
-			cerr<<"null box! uptubetopid="<<uptubetopid<<",uptubebottomid="<<uptubebottomid<<endl;
+			std::cerr<<"null box! uptubetopid="<<uptubetopid<<",uptubebottomid="<<uptubebottomid<<std::endl;
 		}
 		// find the average x and y positions: this is the centre position on the canvas of this cluster
 		Double_t upclustery = (upbottombox->GetY1()+uptopbox->GetY2())/2.;
@@ -173,8 +175,8 @@ void cMRDTrack::DrawReco(TCanvas* imgcanvas, std::vector<TArrow*> &trackarrows, 
 		myarrow->Draw();
 		imgcanvas->Update();
 #ifdef MRDTrack_VERBOSE
-		cout<<"drawing reconstructed track arrow from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
-			<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<endl;
+		std::cout<<"drawing reconstructed track arrow from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
+			<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<std::endl;
 #endif
 		//std::this_thread::sleep_for (std::chrono::seconds(3));
 		trackarrows.push_back(myarrow);
@@ -195,7 +197,7 @@ void cMRDTrack::DrawReco(TCanvas* imgcanvas, std::vector<TArrow*> &trackarrows, 
 		TBox* uptopbox = paddlepointers.at(uptubetopid);
 		TBox* upbottombox = paddlepointers.at(uptubebottomid);
 		if(uptopbox==0||upbottombox==0){
-			cerr<<"null box! uptubetopid="<<uptubetopid<<",uptubebottomid="<<uptubebottomid<<endl;
+			std::cerr<<"null box! uptubetopid="<<uptubetopid<<",uptubebottomid="<<uptubebottomid<<std::endl;
 		}
 		// find the average x and y positions: this is the centre position on the canvas of this cluster
 		Double_t upclustery = (upbottombox->GetY1()+uptopbox->GetY2())/2.;
@@ -225,8 +227,8 @@ void cMRDTrack::DrawReco(TCanvas* imgcanvas, std::vector<TArrow*> &trackarrows, 
 		myarrow->Draw();
 		imgcanvas->Update();
 #ifdef MRDTrack_VERBOSE
-		cout<<"drawing reconstructed track arrow from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
-			<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<endl;
+		std::cout<<"drawing reconstructed track arrow from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
+			<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<std::endl;
 #endif
 		//std::this_thread::sleep_for (std::chrono::seconds(3));
 		trackarrows.push_back(myarrow);
@@ -250,8 +252,8 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 //	Double_t mrdexity = mrdcluster::paddle_originy.at(294)/10.;
 	
 #ifdef MRDTrack_RECO_VERBOSE
-	cout<<"mrd entry point is ("<<mrdentryx<<", "<<mrdentryy<<", "<<mrdentryz<<")"<<endl;
-	cout<<"mrd exit point is ("<<mrdexitx<<", "<<mrdexity<<", "<<mrdexitz<<")"<<endl;
+	std::cout<<"mrd entry point is ("<<mrdentryx<<", "<<mrdentryy<<", "<<mrdentryz<<")"<<std::endl;
+	std::cout<<"mrd exit point is ("<<mrdexitx<<", "<<mrdexity<<", "<<mrdexitz<<")"<<std::endl;
 #endif
 	
 	// up to now all measurements are in WCSim absolute coordinates. Shift z axis so that
@@ -262,12 +264,12 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 	bool trackisbackwardgoing=false;
 	
 #ifdef MRDTrack_RECO_VERBOSE
-	cout<<"shifting z axis; new entry and exit points are "<<mrdentryz<<" and "<<mrdexitz<<endl;
-	cout<<"entry and exit points in terms of mrd width, height and depth are: ("
+	std::cout<<"shifting z axis; new entry and exit points are "<<mrdentryz<<" and "<<mrdexitz<<std::endl;
+	std::cout<<"entry and exit points in terms of mrd width, height and depth are: ("
 		<<(mrdentryx/MRDSpecs::maxwidth)<<", "<<(mrdentryy/MRDSpecs::maxheight)
 		<<", "<<(mrdentryz/MRDSpecs::mrdZlen)<<") -> ("
 		<<(mrdexitx/MRDSpecs::maxwidth)<<", "<<(mrdexity/MRDSpecs::maxheight)
-		<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<endl;
+		<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<std::endl;
 #endif
 	
 	// the following is code copied from DrawTruthTracks, as it converts cm to canvas units,
@@ -290,11 +292,11 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 	mrdentryy*=yscalefactor;
 	mrdexity*=yscalefactor;
 #ifdef MRDTrack_RECO_VERBOSE
-	cout<<"scaled entry and exit points in terms of mrd width, height and depth are: ("
+	std::cout<<"scaled entry and exit points in terms of mrd width, height and depth are: ("
 		<<(mrdentryx/MRDSpecs::maxwidth)<<", "<<(mrdentryy/MRDSpecs::maxheight)
 		<<", "<<(mrdentryz/MRDSpecs::mrdZlen)<<") -> ("
 		<<(mrdexitx/MRDSpecs::maxwidth)<<", "<<(mrdexity/MRDSpecs::maxheight)
-		<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<endl;
+		<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<std::endl;
 #endif
 	
 	// one last thing: the beam comes from the left. In the top view, right-hand-side (x>0)
@@ -388,8 +390,8 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 		imgcanvas->cd(2);  // top view for x positions
 		myarrow->Draw();
 #ifdef MRDTrack_RECO_VERBOSE
-		cout<<"drawing top view fit track arrow from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()
-			<<" to "<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<endl;
+		std::cout<<"drawing top view fit track arrow from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()
+			<<" to "<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<std::endl;
 #endif
 		trackfitarrows.push_back(myarrow);
 		
@@ -403,8 +405,8 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 			myarrow->SetLineStyle(3);  //dotted
 			myarrow->Draw();
 #ifdef MRDTrack_RECO_VERBOSE
-			cout<<"drawing line from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
-				<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<endl;
+			std::cout<<"drawing line from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
+				<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<std::endl;
 #endif
 			trackfitarrows.push_back(myarrow);
 		}
@@ -423,8 +425,8 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 		imgcanvas->cd(1);  // side view for y positions
 		myarrow->Draw();
 #ifdef MRDTrack_RECO_VERBOSE
-		cout<<"drawing side view fit track arrow from "<<myarrow->GetX1()<<", "
-		<<myarrow->GetY1()<<" to "<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<endl;
+		std::cout<<"drawing side view fit track arrow from "<<myarrow->GetX1()<<", "
+		<<myarrow->GetY1()<<" to "<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<std::endl;
 #endif
 		trackfitarrows.push_back(myarrow);
 		
@@ -438,8 +440,8 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 			myarrow->SetLineStyle(3);  //dotted
 			myarrow->Draw();
 #ifdef MRDTrack_RECO_VERBOSE
-			cout<<"drawing line from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
-				<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<endl;
+			std::cout<<"drawing line from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()<<" to "
+				<<myarrow->GetX2()<<", "<<myarrow->GetY2()<<std::endl;
 #endif
 			trackfitarrows.push_back(myarrow);
 		}

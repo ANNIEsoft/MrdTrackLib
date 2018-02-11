@@ -1,6 +1,6 @@
 /* vim:set noexpandtab tabstop=4 wrap */
-#ifndef STRIPMRDPOSITIONS_C
-#define STRIPMRDPOSITIONS_C
+//#ifndef STRIPMRDPOSITIONS_C
+//#define STRIPMRDPOSITIONS_C
 
 #include <string>
 #include <regex>
@@ -11,6 +11,20 @@
 #include "MRDSubEvent_ReconstructionClasses.hh"
 using namespace std;
 //.x /annie/app/users/moflaher/wcsim/root_work/RegexTest.C+	<< standalone call
+
+Int_t mrdcluster::clustercounter=0;
+Bool_t mrdcluster::fillstaticmembers=true;
+std::vector<Int_t> mrdcluster::paddle_orientations(MRDSpecs::nummrdpmts);
+std::vector<Int_t> mrdcluster::paddle_layers(MRDSpecs::nummrdpmts);
+std::vector<Double_t> mrdcluster::paddle_originx(MRDSpecs::nummrdpmts);
+std::vector<Double_t> mrdcluster::paddle_originy(MRDSpecs::nummrdpmts);
+std::vector<Double_t> mrdcluster::paddle_originz(MRDSpecs::nummrdpmts);
+std::vector<std::pair<Double_t,Double_t> > mrdcluster::paddle_extentsx(MRDSpecs::nummrdpmts);
+std::vector<std::pair<Double_t,Double_t> > mrdcluster::paddle_extentsy(MRDSpecs::nummrdpmts);
+std::vector<std::pair<Double_t,Double_t> > mrdcluster::paddle_extentsz(MRDSpecs::nummrdpmts);
+int nothing = mrdcluster::StripMrdPositions();
+
+
 
 int mrdcluster::StripMrdPositions(){
 	
@@ -148,4 +162,4 @@ int mrdcluster::StripMrdPositions(){
 	return 1;
 }
 
-#endif
+//#endif

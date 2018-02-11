@@ -1,5 +1,5 @@
 /* vim:set noexpandtab tabstop=4 wrap */
-#ifndef __CINT__
+//#ifndef __CINT__
 #include "Riostream.h"
 #include "TMatrixD.h"
 #include "TVectorD.h"
@@ -8,21 +8,36 @@
 #include "TDecompSVD.h"
 #include "TF1.h"
 #include "TBox.h"
-#endif
+//#endif
 #include "MRDSubEventClass.hh"
 
-#ifndef TRACKFINDVERBOSE
+//#ifndef TRACKFINDVERBOSE
 //#define TRACKFINDVERBOSE 1
-#endif
+//#endif
 
-class mrdcluster;
-class mrdcell;
+//class mrdcluster;
+//class mrdcell;
 const Int_t mintracklength=0;	// tracks must have (mintracklength+1) cells to qualify
 								// be generous - allow 1-cell tracks. We'll require tank coincidence anyway.
 const Double_t chi2limit=125.0; //80.0;	// max chi^2 from a linear least squares fit to all 3 clusters for those
 								// to be classed as clusters in the same track
 								// 40 - offset of 1 cell. but doesn't allow multi-digit clusters 
 		//140						// which increase opening angle to ~70. This doesn't allow large kinks
+
+Int_t mrdcell::cellcounter=0;
+Bool_t cMRDSubEvent::fillstaticmembers=true;
+TCanvas* cMRDSubEvent::imgcanvas=0;
+TText* cMRDSubEvent::titleleft=0;
+TText* cMRDSubEvent::titleright=0;
+// allocate paddle vector now: they'll be filled in first call to DrawMrdCanvases
+std::vector<TBox*> cMRDSubEvent::paddlepointers(MRDSpecs::nummrdpmts+(2*MRDSpecs::numpanels));
+//std::vector<Int_t> cMRDSubEvent::aspectrumv(19);
+//std::vector<Int_t> cMRDSubEvent::aspectrumv = ( []()->std::vector<Int_t> { std::vector<Int_t> temp {kYellow, kOrange, (kOrange-3), (kOrange+8), (kOrange+10), kRed, (kRed+1), (kPink+4), (kMagenta+2), (kMagenta+1), kMagenta, (kViolet-2), (kViolet-3), (kViolet+7), (kViolet+9), (kBlue+2), (kBlue+1), kAzure, (kAzure+7)}; return temp; }() );
+//std::vector<Int_t> cMRDSubEvent::aspectrumv{kYellow, kOrange, (kOrange-3), (kOrange+8), (kOrange+10), kRed, (kRed+1), (kPink+4), (kMagenta+2), (kMagenta+1), kMagenta, (kViolet-2), (kViolet-3), (kViolet+7), (kViolet+9), (kBlue+2), (kBlue+1), kAzure, (kAzure+7)};
+std::vector<Int_t> cMRDSubEvent::aspectrumv{1435, 1436, 1437, 1438, 1439, 1440, 1441, 1442, 1443, 1443, 1444, 1445, 885, 1446, 1447, 1448, 879, 1449, 1450};
+std::vector<std::string> cMRDSubEvent::colorhexes{"#21ffff", "#20deea", "#1fbcd5", "#21a8cd", "#269bcb", "#2b8fca", "#367fcb", "#416fcb", "#4965cd", "#505dcf", "#5855d0", "#6247cf", "#6d3ace", "#782acd", "#851acc", "#910dcc", "#9e07cd", "#aa00ce", "#bf00d7"};
+std::vector<EColor> cMRDSubEvent::trackcolours{kBlack, kBlue, (EColor)TColor::GetColorDark(kGreen), kRed, kViolet, kOrange, kMagenta,(EColor)(kAzure+2),(EColor)(kOrange+4),(EColor)(kViolet-6),(EColor)(kTeal-6)};
+
 								// where deviation from straight projection is 2 cells.
 
 void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawfit){
@@ -51,7 +66,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 	// 3. find large clusters. where there are multiple hits in adjacent paddles within the same layer, these combine into a single cluster
 	// sort digits into layers
 #ifdef TRACKFINDVERBOSE
-	cout<<"sorting digits into layers"<<endl;
+	std::cout<<"sorting digits into layers"<<std::endl;
 #endif
 	std::vector< std::vector<int> > digits_by_layer( (MRDSpecs::numpanels) );	//nb. inner parenthesis rqd!
 	for(Int_t adigiindex=0; adigiindex<digi_ids.size(); adigiindex++){
@@ -61,7 +76,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 	}
 #ifdef TRACKFINDVERBOSE
 	for(int layer=0; layer<MRDSpecs::numpanels; layer++){
-		cout<<"found "<<digits_by_layer.at(layer).size()<<" digits in layer "<<layer<<endl;
+		std::cout<<"found "<<digits_by_layer.at(layer).size()<<" digits in layer "<<layer<<std::endl;
 	}
 #endif
 	
@@ -80,27 +95,27 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		// then scan through the vector of pairs, comparing tube_ids. if match, use digi_index
 		// part to retrieve the other required information
 #ifdef TRACKFINDVERBOSE
-		cout<<"building vector of pairs in layer "<<thislayer<<" for sorting"<<endl;
-		cout<<"digits in this layer include:"<<endl;
+		std::cout<<"building vector of pairs in layer "<<thislayer<<" for sorting"<<std::endl;
+		std::cout<<"digits in this layer include:"<<std::endl;
 #endif
 		std::vector< std::pair<Int_t, Int_t> > digitssortedbytube;
 		for(int j=0; j<digitsinthislayer.size(); j++){
 			Int_t adigiindex = digitsinthislayer.at(j);
 			Int_t atubeid = pmts_hit.at(adigiindex);
 #ifdef TRACKFINDVERBOSE
-			cout<<"   tube "<<atubeid<<", digit "<<adigiindex<<endl;
+			std::cout<<"   tube "<<atubeid<<", digit "<<adigiindex<<std::endl;
 #endif
 			digitssortedbytube.push_back(std::pair<Int_t, Int_t>(atubeid, adigiindex));
 		}
 #ifdef TRACKFINDVERBOSE
-		cout<<"sorting pairs in this layer by tube id"<<endl;
+		std::cout<<"sorting pairs in this layer by tube id"<<std::endl;
 #endif
 		std::sort(digitssortedbytube.begin(), digitssortedbytube.end());
 #ifdef TRACKFINDVERBOSE
-		cout<<"sorted set of pairs is:"<<endl;
+		std::cout<<"sorted set of pairs is:"<<std::endl;
 		for(int pairveci=0; pairveci<digitssortedbytube.size(); pairveci++){
-			cout<<"   tube "<<digitssortedbytube.at(pairveci).first
-				<<", digit "<<digitssortedbytube.at(pairveci).second<<endl;
+			std::cout<<"   tube "<<digitssortedbytube.at(pairveci).first
+				<<", digit "<<digitssortedbytube.at(pairveci).second<<std::endl;
 		}
 #endif
 		
@@ -109,7 +124,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		// 2. if this digit is already in a cluster, add the next digit.
 		// 3. otherwise, create a cluster with this digit and add the next digit.
 #ifdef TRACKFINDVERBOSE
-		cout<<"searching for multi-paddle clusters"<<endl;
+		std::cout<<"searching for multi-paddle clusters"<<std::endl;
 #endif
 		mrdcluster* thisdigitscluster=nullptr;
 		for(Int_t thisdigit=0; thisdigit<(digitsinthislayer.size()-1); thisdigit++){
@@ -128,8 +143,8 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				if(thisdigitscluster==nullptr){
 					// it's not: make a cluster and add both digits
 #ifdef TRACKFINDVERBOSE
-					cout<<"creating multi-paddle cluster in layer "<<thislayer
-						<<" from digits in tubes "<<tube_id<<" and "<<tube_id2<<endl;
+					std::cout<<"creating multi-paddle cluster in layer "<<thislayer
+						<<" from digits in tubes "<<tube_id<<" and "<<tube_id2<<std::endl;
 #endif
 					thisdigitscluster = new mrdcluster(adigiindex, tube_id, thislayer, digi_ts.at(adigiindex));
 					theclusters.push_back(thisdigitscluster);
@@ -139,7 +154,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				} else {
 					// it is: add the next digit to this digit's cluster
 #ifdef TRACKFINDVERBOSE
-					cout<<"adding digiti in tube "<<tube_id2<<" to this cluster"<<endl;
+					std::cout<<"adding digiti in tube "<<tube_id2<<" to this cluster"<<std::endl;
 #endif
 					thisdigitscluster->AddDigit(adigiindex2, tube_id2, digi_ts.at(adigiindex2));
 					donedigits.push_back(adigiindex2);
@@ -149,14 +164,14 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 			}
 		}
 #ifdef TRACKFINDVERBOSE
-		cout<<"found "<<theclusters.size()<<" multi-digit clusters so far"<<endl;
+		std::cout<<"found "<<theclusters.size()<<" multi-digit clusters so far"<<std::endl;
 #endif
 	}
 	
 	// 4. make any remaining non-grouped hits their own cluster.
 #ifdef TRACKFINDVERBOSE
-	cout<<"constructed "<<theclusters.size()<<" multi-paddle clusters."<<endl
-		<<"Making remaining digits into clusters"<<endl;
+	std::cout<<"constructed "<<theclusters.size()<<" multi-paddle clusters."<<std::endl
+		<<"Making remaining digits into clusters"<<std::endl;
 #endif
 	for(Int_t adigiindex=0; adigiindex<digi_ids.size(); adigiindex++){
 		if(std::count(donedigits.begin(), donedigits.end(), adigiindex)==0){
@@ -167,7 +182,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		}
 	}
 #ifdef TRACKFINDVERBOSE
-	cout<<"constructed "<<theclusters.size()<<" total clusters from "<<digi_ids.size()<<" digits"<<endl;
+	std::cout<<"constructed "<<theclusters.size()<<" total clusters from "<<digi_ids.size()<<" digits"<<std::endl;
 #endif
 	// When generating cells we run over a nested loop: the clusters should be ordered by layer,
 	// so that cells between adjacent layers are generated before looking for cells spanning two
@@ -187,7 +202,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 	for(int thislayer=0; thislayer<MRDSpecs::numpanels; thislayer++){
 	// loop over all clusters in the layer ... 
 #ifdef TRACKFINDVERBOSE
-		cout<<"constructing cells from clusters starting in layer "<<thislayer<<endl;
+		std::cout<<"constructing cells from clusters starting in layer "<<thislayer<<std::endl;
 #endif
 		for(int thiscluster=0; thiscluster<theclusters.size(); thiscluster++){
 			mrdcluster* startcluster = theclusters.at(thiscluster);
@@ -203,11 +218,11 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 						// no need to check for equivalent cells with intermediate layers
 						if(((nextlayer-thislayer)==2)||(thisclusterscells.size()==0)){
 #ifdef TRACKFINDVERBOSE
-							cout<<"generating a cell between cluster "<<thiscluster
+							std::cout<<"generating a cell between cluster "<<thiscluster
 								<<" with centre "<<startcluster->GetCentreIndex()<<" in layer "<<thislayer
 								<<" and cluster "<<thiscluster2
 								<<" with centre "<<endcluster->GetCentreIndex()
-								<<" in layer "<<nextlayer<<endl;
+								<<" in layer "<<nextlayer<<std::endl;
 #endif
 							// generate the cell between these thiscluster and thiscluster2
 							mrdcell* thiscell = new mrdcell(startcluster, endcluster);
@@ -218,11 +233,11 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 							// an intermediate cluster in perfect alignment with this endcluster
 							// if so, we will skip making this cell, as it will overlap with the existing cell
 #ifdef TRACKFINDVERBOSE
-							cout<<"scanning for intermediate cells between cluster "<<thiscluster
+							std::cout<<"scanning for intermediate cells between cluster "<<thiscluster
 								<<" with centre "<<startcluster->GetCentreIndex()<<" in layer "<<thislayer
 								<<" and cluster "<<thiscluster2
 								<<" with centre "<<endcluster->GetCentreIndex()
-								<<" in layer "<<nextlayer<<endl;
+								<<" in layer "<<nextlayer<<std::endl;
 #endif
 							Bool_t foundintermediate=false;
 							// scan through existing cells starting from this cluster
@@ -231,7 +246,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 								// skip if the cell end cluster is in nextlayer - it's not intermediate
 								if(acell->clusters.second->layer==nextlayer) {
 #ifdef TRACKFINDVERBOSE
-									cout<<"skipping cell to present layer (can't be intermediate)"<<endl;
+									std::cout<<"skipping cell to present layer (can't be intermediate)"<<std::endl;
 #endif
 									continue;
 								}
@@ -243,25 +258,25 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 								int xdiff = midclustercentre-startclustercentre;
 								double projectedendpoint = startclustercentre+(2*xdiff);
 #ifdef TRACKFINDVERBOSE
-								cout<<"projection of cell from tube "<<startclustercentre
+								std::cout<<"projection of cell from tube "<<startclustercentre
 									<<" in layer "<<thislayer<<" to tube "<<midclustercentre
 									<<" in layer "<<acell->clusters.second->layer
 									<<" forward to layer "<<nextlayer<<" gives tube "
 									<<projectedendpoint<<", compared to present cluster's centre of "
-									<<endcluster->GetCentreIndex()<<endl;
+									<<endcluster->GetCentreIndex()<<std::endl;
 #endif
 								// allow larger kinks
 								if(TMath::Abs(projectedendpoint-endcluster->GetCentreIndex())<2){
 									foundintermediate=true;  // same as existing cell
 #ifdef TRACKFINDVERBOSE
-									cout<<"this is an intermediate, skipping this endpoint cluster."<<endl;
+									std::cout<<"this is an intermediate, skipping this endpoint cluster."<<std::endl;
 #endif
 									break;
 								}
 							}
 							if(!foundintermediate){
 #ifdef TRACKFINDVERBOSE
-								cout<<"no intermediate cells found, creating a new cell"<<endl;
+								std::cout<<"no intermediate cells found, creating a new cell"<<std::endl;
 #endif
 								// no existing cell that overlaps with this one; make the cell
 								mrdcell* thiscell = new mrdcell(startcluster, endcluster);
@@ -275,7 +290,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		}
 	}
 #ifdef TRACKFINDVERBOSE
-	cout<<endl<<"constructed a total of "<<thecells.size()<<" cells"<<endl;
+	std::cout<<std::endl<<"constructed a total of "<<thecells.size()<<" cells"<<std::endl;
 #endif
 	
 	//6. fill the neighbourhood for each cell. the neighbours are defined considering a pair of cells:
@@ -296,8 +311,8 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		mrdcell* upcell = thecells.at(acelli);
 		mrdcluster* sharedcluster1 = upcell->clusters.second;
 #ifdef TRACKFINDVERBOSE
-		cout<<"searching for downstream neighbours of cell "<<acelli
-			<<" with downstream cluster at "<<sharedcluster1<<endl;
+		std::cout<<"searching for downstream neighbours of cell "<<acelli
+			<<" with downstream cluster at "<<sharedcluster1<<std::endl;
 #endif
 		mrdcell* thiscellsneighbour = nullptr;
 		// scan over other downstream cells
@@ -305,12 +320,12 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 			mrdcell* downcell = thecells.at(bcelli);
 			mrdcluster* sharedcluster2 = downcell->clusters.first;
 #ifdef TRACKFINDVERBOSE
-			//cout<<"checking cell with upstream cluster at "<<sharedcluster2<<endl;
+			//std::cout<<"checking cell with upstream cluster at "<<sharedcluster2<<std::endl;
 #endif
 			// check if they share a cluster
 			if(sharedcluster1==sharedcluster2){
 #ifdef TRACKFINDVERBOSE
-				cout<<"shared cluster! Checking if they're aligned enough to be a track"<<endl;
+				std::cout<<"shared cluster! Checking if they're aligned enough to be a track"<<std::endl;
 #endif
 				// they share a central cluster. Next check they are sufficiently 'aligned' to be considered
 				// part of the same track. Do this by checking a x^2 fit to a straight line through all clusters
@@ -319,7 +334,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				// make a linear-least-square fit to the three cluster centres, with errors on the three
 				// centres based on the cluster paddle limits
 #ifdef TRACKFINDVERBOSE
-				//cout<<"checking clusters at "<<upcluster<<", "<<sharedcluster1<<", "<<downcluster<<endl;
+				//std::cout<<"checking clusters at "<<upcluster<<", "<<sharedcluster1<<", "<<downcluster<<std::endl;
 #endif
 				Double_t clusterzcentres[] = 
 					{(Double_t)upcluster->layer, (Double_t)sharedcluster1->layer, (Double_t)downcluster->layer};
@@ -332,19 +347,19 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				Double_t fit_gradient=0, fit_offset=0, chi2 = 0.;
 				// is errors the same as weighting in chi^2 implementation?
 #ifdef TRACKFINDVERBOSE
-				cout<<"Performing least squares fit with centres at y values ("
+				std::cout<<"Performing least squares fit with centres at y values ("
 					<<clusterxcentres[0]<<", "<<clusterxcentres[1]<<", "<<clusterxcentres[2]<<"), y errors ("
 					<<clusterxerrors[0]<<", "<<clusterxerrors[1]<<", "<<clusterxerrors[2]<<"), z values ("
-					<<clusterzcentres[0]<<", "<<clusterzcentres[1]<<", "<<clusterzcentres[2]<<")"<<endl;
+					<<clusterzcentres[0]<<", "<<clusterzcentres[1]<<", "<<clusterzcentres[2]<<")"<<std::endl;
 #endif
 				LeastSquaresMinimizer(3, clusterzcentres, clusterxcentres, 0, clusterxerrors, 
 					fit_gradient, fit_offset, chi2);
 #ifdef TRACKFINDVERBOSE
-				cout<<"fit produces gradient "<<fit_gradient<<", offset "<<fit_offset<<", chi^2 "<<chi2<<endl;
+				std::cout<<"fit produces gradient "<<fit_gradient<<", offset "<<fit_offset<<", chi^2 "<<chi2<<std::endl;
 #endif
 				if(chi2>=0&&chi2<chi2limit){  // fit can fail with negative chi2. 
 #ifdef TRACKFINDVERBOSE
-					cout<<"chi2 is good, checking for existing neighbours and daughters"<<endl;
+					std::cout<<"chi2 is good, checking for existing neighbours and daughters"<<std::endl;
 #endif
 					// these cells are neighbours! 
 					// determine the track direction to see how to proceed << FUDGED. 
@@ -360,7 +375,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 // TODO: Perhaps add proper support for keeping all daughters associated with the parent ...
 //
 //#ifdef TRACKFINDVERBOSE
-//							cout<<"this is a second downtrack candidate! Track splits!"<<endl;
+//							std::cout<<"this is a second downtrack candidate! Track splits!"<<std::endl;
 //#endif
 //							// we need to un-set the existing neighbour. Instead set both downstream
 //							// candidates as their own new tracks, and call this track the 'parent'
@@ -374,15 +389,15 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 //							downcell->parentcellindex = upcell->cellid;
 //							upcell->hasdaughters = true;
 #ifdef TRACKFINDVERBOSE
-							cout<<"this is a second downtrack candidate! Choosing best match"<<endl;
+							std::cout<<"this is a second downtrack candidate! Choosing best match"<<std::endl;
 #endif
 							// we need to un-set the existing neighbour. Instead set both downstream
 							// candidates as their own new tracks, and call this track the 'parent'
 							if(!((downcluster->layer)>(thecells.at(upcell->dtneighbourcellindex)->clusters.second->layer)) &&
 								chi2<(thecells.at(upcell->dtneighbourcellindex)->neighbourchi2)){
 #ifdef TRACKFINDVERBOSE
-								cout<<"this match has a better chi2, overriding existing pairing"<<endl;
-								cout<<"considering cell "<<acelli<<" the upstream neighbour of cell "<<bcelli<<endl;
+								std::cout<<"this match has a better chi2, overriding existing pairing"<<std::endl;
+								std::cout<<"considering cell "<<acelli<<" the upstream neighbour of cell "<<bcelli<<std::endl;
 #endif
 								downcell->utneighbourcellindex = upcell->cellid;
 								downcell->neighbourchi2 = chi2;
@@ -397,22 +412,22 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 								upcell->hasdaughters = true;
 							} else {
 #ifdef TRACKFINDVERBOSE
-								cout<<"this match has a worse chi2, ignoring this pairing"<<endl;
+								std::cout<<"this match has a worse chi2, ignoring this pairing"<<std::endl;
 #endif
 							}
 						} else {
 #ifdef TRACKFINDVERBOSE
-							cout<<"no existing downtrack candidate..."<<endl;
+							std::cout<<"no existing downtrack candidate..."<<std::endl;
 #endif
 							// this cell does not have a downstream cell yet. If the downstream cell has no
 							// existing upstream cell, use this one. If the downstream cell already has an
 							// upstream neighbour defined (converging upstream tracks), use the better fit
 							if(downcell->utneighbourcellindex!=-1){
-							cout<<"existing candidate chi2="<<downcell->neighbourchi2<<endl;
-							cout<<"existing candidate upstream layer="
-								<<thecells.at(downcell->utneighbourcellindex)->clusters.first->layer<<endl;
-							cout<<"new candidate chi2="<<chi2<<endl
-								<<"new candidate upstream layer="<<upcell->clusters.first->layer<<endl;
+							std::cout<<"existing candidate chi2="<<downcell->neighbourchi2<<std::endl;
+							std::cout<<"existing candidate upstream layer="
+								<<thecells.at(downcell->utneighbourcellindex)->clusters.first->layer<<std::endl;
+							std::cout<<"new candidate chi2="<<chi2<<std::endl
+								<<"new candidate upstream layer="<<upcell->clusters.first->layer<<std::endl;
 							}
 							if( (downcell->utneighbourcellindex==-1) || 
 								(downcell->utneighbourcellindex!=-1 && chi2<downcell->neighbourchi2) ||
@@ -420,7 +435,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 								upcell->clusters.first->layer > 
 								(thecells.at(downcell->utneighbourcellindex)->clusters.first->layer)) ){
 #ifdef TRACKFINDVERBOSE
-								cout<<"considering cell "<<acelli<<" the upstream neighbour of cell "<<bcelli<<endl;
+								std::cout<<"considering cell "<<acelli<<" the upstream neighbour of cell "<<bcelli<<std::endl;
 #endif
 								downcell->utneighbourcellindex = upcell->cellid;
 								downcell->neighbourchi2 = chi2;
@@ -428,7 +443,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 							} else {
 								// else this cell already has a neighbour with a better fit. Nothing to do.
 #ifdef TRACKFINDVERBOSE
-								cout<<"... but upstream or downstream cell already has a better fit!"<<endl;
+								std::cout<<"... but upstream or downstream cell already has a better fit!"<<std::endl;
 #endif
 							}
 						}
@@ -439,7 +454,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 						// of this parent
 						if(downcell->dtneighbourcellindex!=-1){
 #ifdef TRACKFINDVERBOSE
-							cout<<"this is a second downtrack candidate! Track splits!"<<endl;
+							std::cout<<"this is a second downtrack candidate! Track splits!"<<std::endl;
 #endif
 							// this cell has already been given a down-track cell
 							if(downcell->dtneighbourcellindex!=-2){
@@ -458,7 +473,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 							(upcell->utneighbourcellindex!=-1 && chi2<upcell->neighbourchi2) ){
 								// this cell has no upstream candidate, or this one has a better alignment
 #ifdef TRACKFINDVERBOSE
-								cout<<"considering cell "<<bcelli<<" the upstream neighbour of cell "<<acelli<<endl;
+								std::cout<<"considering cell "<<bcelli<<" the upstream neighbour of cell "<<acelli<<std::endl;
 #endif
 								upcell->utneighbourcellindex = downcell->cellid;
 								upcell->neighbourchi2 = chi2;
@@ -470,14 +485,14 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				} else {
 					// end if based on chi2 limit.
 #ifdef TRACKFINDVERBOSE
-					cout<<"chi2 insufficient, cells not aligned"<<endl;
+					std::cout<<"chi2 insufficient, cells not aligned"<<std::endl;
 #endif
 				}
 			}	// end if based on shared cluster
 		}	// end loop over downstream cells
 #ifdef TRACKFINDVERBOSE
-			if(upcell->dtneighbourcellindex==-1) cout<<"no downstream neighbour cell found"<<endl;
-			else cout<<"downstream neighbour cell found"<<endl;
+			if(upcell->dtneighbourcellindex==-1) std::cout<<"no downstream neighbour cell found"<<std::endl;
+			else std::cout<<"downstream neighbour cell found"<<std::endl;
 #endif
 	}	// end loop over upstream cells
 	
@@ -489,8 +504,8 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		else { cellswithupstreamneighbours++; }
 	}
 #ifdef TRACKFINDVERBOSE
-	cout<<"found "<<cellswithoutupstreamneighbours<<" cells without any upstream neighbours"
-		<<" and "<<cellswithupstreamneighbours<<" cells with upstream neighbours"<<endl;
+	std::cout<<"found "<<cellswithoutupstreamneighbours<<" cells without any upstream neighbours"
+		<<" and "<<cellswithupstreamneighbours<<" cells with upstream neighbours"<<std::endl;
 #endif
 	
 	// 7. now the automation [ do {...} while (...) ]
@@ -499,14 +514,14 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 	// repeat while there at least 1 cell has a neighbour with the same state number.
 	if(cellswithupstreamneighbours){
 #ifdef TRACKFINDVERBOSE
-		cout<<"doing automation!"<<endl;
+		std::cout<<"doing automation!"<<std::endl;
 #endif
 		int loopiterations=0;
 		Bool_t madeachange;
 		std::vector <Bool_t> newcellstatuses(thecells.size());
 		do {
 	#ifdef TRACKFINDVERBOSE
-			cout<<"automation loop "<<loopiterations<<endl;
+			std::cout<<"automation loop "<<loopiterations<<std::endl;
 	#endif
 			madeachange=false;
 			for(int acelli=0; acelli<thecells.size(); acelli++){
@@ -519,7 +534,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 						newcellstatuses.at(acelli) = true;
 						madeachange=true;
 #ifdef TRACKFINDVERBOSE
-						cout<<"incrementing status of cell "<<acelli<<endl;
+						std::cout<<"incrementing status of cell "<<acelli<<std::endl;
 #endif
 					} else {
 						// the cell doesn't have the same status as upstream neighbour - keep same status
@@ -552,14 +567,14 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		// value - i.e. few upstream neighbours. We allow short tracks if they instead have or are a parent. 
 		if((thiscell->status<mintracklength)&&(thiscell->parentcellindex==-1)&&(thiscell->hasdaughters==false)){
 #ifdef TRACKFINDVERBOSE
-			cout<<"skipping short track with endpoint cell "<<acelli<<endl;
+			std::cout<<"skipping short track with endpoint cell "<<acelli<<std::endl;
 #endif
 			continue;
 		}
 		trackstartindices.push_back(acelli);	// this is a valid downstream end cell!
 	}
 #ifdef TRACKFINDVERBOSE
-	cout<<"found "<<trackstartindices.size()<<" track startpoints"<<endl;
+	std::cout<<"found "<<trackstartindices.size()<<" track startpoints"<<std::endl;
 #endif
 	
 	// 9. These cells are combined with upstream neighbours until the cell with state 0 (upstream edge). 
@@ -570,25 +585,25 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		mrdcell* thiscell = thecells.at(trackstartindices.at(atracki));
 		thistrack.push_back(thiscell);
 #ifdef TRACKFINDVERBOSE
-		cout<<"track "<<atracki<<" has start cell index "<<trackstartindices.at(atracki)<<endl;
+		std::cout<<"track "<<atracki<<" has start cell index "<<trackstartindices.at(atracki)<<std::endl;
 #endif
 		do {
 			int nextupcellindex = thiscell->utneighbourcellindex;
 #ifdef TRACKFINDVERBOSE
-			cout<<"cell "<<thiscell<<" has neighbour index "<<nextupcellindex<<endl;
+			std::cout<<"cell "<<thiscell<<" has neighbour index "<<nextupcellindex<<std::endl;
 #endif
 			if(nextupcellindex==-1) {
-				if(thiscell->status!=0) cerr<<"cell with nonzero status but no upstream neighbour!"<<endl;
+				if(thiscell->status!=0) std::cerr<<"cell with nonzero status but no upstream neighbour!"<<std::endl;
 				break;
 			}
 #ifdef TRACKFINDVERBOSE
-			cout<<"adding cell "<<nextupcellindex<<" to track "<<atracki<<endl;
+			std::cout<<"adding cell "<<nextupcellindex<<" to track "<<atracki<<std::endl;
 #endif
 			thiscell = thecells.at(nextupcellindex);
 			thistrack.push_back(thiscell);
 		} while (1);
 #ifdef TRACKFINDVERBOSE
-		cout<<"track "<<atracki<<" has a total of "<<thistrack.size()<<" cells"<<endl;
+		std::cout<<"track "<<atracki<<" has a total of "<<thistrack.size()<<" cells"<<std::endl;
 #endif
 		if(thistrack.size()){
 			if((thiscell->clusters.first->layer)%2==0) hpaddletracks.push_back(thistrack);
@@ -604,15 +619,15 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 	// similar crossing point, if applicable
 	// similar track length
 #ifdef TRACKFINDVERBOSE
-	cout<<"building match matrix for matching tracks in two views"<<endl;
-	cout<<"we have "<<hpaddletracks.size()<<" tracks in horizontal paddles and "
-		<<vpaddletracks.size()<<" tracks in vertical paddles"<<endl;
+	std::cout<<"building match matrix for matching tracks in two views"<<std::endl;
+	std::cout<<"we have "<<hpaddletracks.size()<<" tracks in horizontal paddles and "
+		<<vpaddletracks.size()<<" tracks in vertical paddles"<<std::endl;
 #endif
 	std::vector<std::vector<double> > matchmerits (hpaddletracks.size(), std::vector<double>(vpaddletracks.size(),0));
 	for(int tracki=0; tracki<hpaddletracks.size(); tracki++){
 		std::vector<mrdcell*> htrack = hpaddletracks.at(tracki);
 #ifdef TRACKFINDVERBOSE
-		cout<<"scanning matches against htrack "<<tracki<<" which has "<<htrack.size()<<" cells"<<endl;
+		std::cout<<"scanning matches against htrack "<<tracki<<" which has "<<htrack.size()<<" cells"<<std::endl;
 #endif
 		for(int trackj=0; trackj<vpaddletracks.size(); trackj++){
 			std::vector<mrdcell*> vtrack = vpaddletracks.at(trackj);
@@ -624,8 +639,8 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 			view paddles. If both main-view paddles are central, either intermediate side is allowed.
 			*/
 #ifdef TRACKFINDVERBOSE
-			cout<<"making figure-of-merit with v track "<<trackj
-				<<", which has "<<vtrack.size()<<" cells"<<endl;
+			std::cout<<"making figure-of-merit with v track "<<trackj
+				<<", which has "<<vtrack.size()<<" cells"<<std::endl;
 #endif
 			
 			// first test how compatible v track (alt) is with h track (main)
@@ -653,14 +668,14 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 															  // case they're on opposite sides
 //				if(avgside==0){
 //#ifdef TRACKFINDVERBOSE
-//					cout<<"average side of hcell "<<testi<<" is 0, no compatibility check"<<endl;
+//					std::cout<<"average side of hcell "<<testi<<" is 0, no compatibility check"<<std::endl;
 //#endif
 //					continue;  // paddles are central - either side is consistent. 								   // no change to figure of merit
 //				}
 #ifdef TRACKFINDVERBOSE
-				cout<<"htrack cell "<<testi<<" starts in layer "<<startlayer<<" on side "<<hsidestart
+				std::cout<<"htrack cell "<<testi<<" starts in layer "<<startlayer<<" on side "<<hsidestart
 					<<" and goes to layer "<<stoplayer<<" on side "<<hsidestop
-					<<" giving average side "<<avgside<<endl;
+					<<" giving average side "<<avgside<<std::endl;
 #endif
 				
 				// now scan over the other view hits
@@ -669,7 +684,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 					int interlayer=vtrack.at(testj)->clusters.first->layer;
 					int outerlayer=vtrack.at(testj)->clusters.second->layer;
 #ifdef TRACKFINDVERBOSE
-					cout<<"vtrack cell "<<testj<<" starts in layer "<<interlayer<<endl;
+					std::cout<<"vtrack cell "<<testj<<" starts in layer "<<interlayer<<std::endl;
 #endif
 					if( (interlayer>startlayer&&interlayer<stoplayer) || 
 						((interlayer==startlayer-1)&&(outerlayer==stoplayer+1)) ||
@@ -684,7 +699,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 									  vtrack.at(testj)->clusters.second->altviewhalf;
 						}
 #ifdef TRACKFINDVERBOSE
-						cout<<"vtrack cell "<<testj<<" in alt view is on side "<<altside<<endl;
+						std::cout<<"vtrack cell "<<testj<<" in alt view is on side "<<altside<<std::endl;
 #endif
 						if(!(outerlayer>startlayer&&outerlayer<stoplayer)){
 							if((avgside*altside)>0){
@@ -720,13 +735,13 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 					if(testj==0){  // one last test on the last cluster
 						int interlayer=vtrack.at(testj)->clusters.second->layer;
 #ifdef TRACKFINDVERBOSE
-						cout<<"vtrack cell "<<testj<<" ends in layer "<<interlayer<<endl;
+						std::cout<<"vtrack cell "<<testj<<" ends in layer "<<interlayer<<std::endl;
 #endif
 						if(interlayer>startlayer&&interlayer<stoplayer){
 							// check if the side is the same as the straddling hits
 							double altside = vtrack.at(testj)->clusters.second->altviewhalf;
 #ifdef TRACKFINDVERBOSE
-							cout<<"vtrack cell "<<testj<<" in alt view is on side "<<altside<<endl;
+							std::cout<<"vtrack cell "<<testj<<" in alt view is on side "<<altside<<std::endl;
 #endif
 							if((avgside*altside)>0){
 								// both are on the same side:
@@ -741,11 +756,11 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				}
 			}
 #ifdef TRACKFINDVERBOSE
-			cout<<"net FOM from side comparison in h view is "<<hfom<<"/"<<hcomparisons<<endl;
+			std::cout<<"net FOM from side comparison in h view is "<<hfom<<"/"<<hcomparisons<<std::endl;
 #endif
 			if(hcomparisons) thisfom+= 2.*((double)hfom/(TMath::Power((double)hcomparisons,0.3)));
 #ifdef TRACKFINDVERBOSE
-			cout<<"thisfom="<<thisfom<<endl;
+			std::cout<<"thisfom="<<thisfom<<std::endl;
 #endif
 			
 			// now check how compatible h track (alt) is with v track (main)
@@ -771,13 +786,13 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				double avgside = (vsidestart+vsidestop)/2.;   // this averages to 0 in
 															  // case they're on opposite sides
 #ifdef TRACKFINDVERBOSE
-				cout<<"vtrack cell "<<testi<<" starts in layer "<<startlayer<<" on side "<<vsidestart
+				std::cout<<"vtrack cell "<<testi<<" starts in layer "<<startlayer<<" on side "<<vsidestart
 					<<" and goes to layer "<<stoplayer<<" on side "<<vsidestop
-					<<" giving average side "<<avgside<<endl;
+					<<" giving average side "<<avgside<<std::endl;
 #endif
 //				if(avgside==0){
 //#ifdef TRACKFINDVERBOSE
-//					cout<<"average side of vcell "<<testi<<" is 0, no compatibility check"<<endl;
+//					std::cout<<"average side of vcell "<<testi<<" is 0, no compatibility check"<<std::endl;
 //#endif
 //					continue;
 //				}
@@ -789,7 +804,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 					int interlayer=htrack.at(testj)->clusters.first->layer;
 					int outerlayer=htrack.at(testj)->clusters.second->layer;
 #ifdef TRACKFINDVERBOSE
-					cout<<"htrack cell "<<testj<<" starts in layer "<<interlayer<<endl;
+					std::cout<<"htrack cell "<<testj<<" starts in layer "<<interlayer<<std::endl;
 #endif
 					if( (interlayer>startlayer&&interlayer<stoplayer) || 
 						((interlayer==startlayer-1)&&(outerlayer==stoplayer+1)) ||
@@ -804,7 +819,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 									  htrack.at(testj)->clusters.second->altviewhalf;
 						}
 #ifdef TRACKFINDVERBOSE
-						cout<<"htrack cell "<<testj<<" in alt view is on side "<<altside<<endl;
+						std::cout<<"htrack cell "<<testj<<" in alt view is on side "<<altside<<std::endl;
 #endif
 						if(!(outerlayer>startlayer&&outerlayer<stoplayer)){
 							if((avgside*altside)>0){
@@ -840,12 +855,12 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 					if(testj==0){  // one last test on the last cluster
 						int interlayer=htrack.at(testj)->clusters.second->layer;
 #ifdef TRACKFINDVERBOSE
-						cout<<"htrack cell "<<testj<<" ends in layer "<<interlayer<<endl;
+						std::cout<<"htrack cell "<<testj<<" ends in layer "<<interlayer<<std::endl;
 #endif
 						if(interlayer>startlayer&&interlayer<stoplayer){
 							double altside = htrack.at(testj)->clusters.second->altviewhalf;
 #ifdef TRACKFINDVERBOSE
-							cout<<"htrack cell "<<testj<<" in alt view is on side "<<altside<<endl;
+							std::cout<<"htrack cell "<<testj<<" in alt view is on side "<<altside<<std::endl;
 #endif
 							if((avgside*altside)>0){
 								// both are on the same side:
@@ -860,15 +875,15 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				}
 			}
 #ifdef TRACKFINDVERBOSE
-			cout<<"net FOM from side comparison in v view is "<<vfom<<"/"<<vcomparisons<<endl;
+			std::cout<<"net FOM from side comparison in v view is "<<vfom<<"/"<<vcomparisons<<std::endl;
 #endif
 			if(vcomparisons) thisfom+= 2.*((double)vfom/(TMath::Power((double)vcomparisons,0.3)));
 #ifdef TRACKFINDVERBOSE
-			cout<<"thisfom="<<thisfom<<endl;
+			std::cout<<"thisfom="<<thisfom<<std::endl;
 #endif
 			
 #ifdef TRACKFINDVERBOSE
-			cout<<"checking compatibility of start and endpoints"<<endl;
+			std::cout<<"checking compatibility of start and endpoints"<<std::endl;
 #endif
 			// give some merit based on proximity of the start and endpoints
 			int hstartlayer = htrack.back()->clusters.first->layer;
@@ -877,21 +892,21 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 			int vstoplayer = vtrack.front()->clusters.second->layer;
 			
 #ifdef TRACKFINDVERBOSE
-			cout<<"updating figure-of-merit for endpoint matching by "
+			std::cout<<"updating figure-of-merit for endpoint matching by "
 				<<-(((TMath::Abs(hstartlayer-vstartlayer)+1.)/2.)-2.)
 				<<" for start proximity (layers "<<hstartlayer<<", "<<vstartlayer<<") and "
 				<<-(((TMath::Abs(hstoplayer-vstoplayer)+1.)/2.)-2.)
-				<<" for end proximity (layers "<<hstoplayer<<", "<<vstoplayer<<")"<<endl;
+				<<" for end proximity (layers "<<hstoplayer<<", "<<vstoplayer<<")"<<std::endl;
 #endif
 			
 			// adjacent layers in start and end points give FOM+1...
 			thisfom -= ((TMath::Abs(hstartlayer-vstartlayer)+1.)/2.)-2.;
 #ifdef TRACKFINDVERBOSE
-			cout<<"thisfom="<<thisfom<<endl;
+			std::cout<<"thisfom="<<thisfom<<std::endl;
 #endif
 			thisfom -= ((TMath::Abs(hstoplayer-vstoplayer)+1.)/2.)-2.;
 #ifdef TRACKFINDVERBOSE
-			cout<<"thisfom="<<thisfom<<endl;
+			std::cout<<"thisfom="<<thisfom<<std::endl;
 #endif 
 			double deltah = htrack.front()->clusters.second->GetCentre()
 							-htrack.back()->clusters.first->GetCentre();
@@ -903,23 +918,23 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 			double deltaxv = MRDSpecs::mrdscintlayers.at(vstoplayer)-MRDSpecs::mrdscintlayers.at(vstartlayer);
 			double cosvang = TMath::Cos(TMath::ATan(deltav/deltaxv));
 #ifdef TRACKFINDVERBOSE
-			cout<<"updating figure-of-merit based on steepness of track angle by "
-				<<coshang<<" for horizontal angle and "<<cosvang<<" for vertical angle"<<endl;
+			std::cout<<"updating figure-of-merit based on steepness of track angle by "
+				<<coshang<<" for horizontal angle and "<<cosvang<<" for vertical angle"<<std::endl;
 #endif
 			thisfom+=(coshang+cosvang);
 			thisfom+=(vtrack.size() + htrack.size())/2.;
 #ifdef TRACKFINDVERBOSE
-			cout<<"updating figure-of-merit based on number of cells in tracks: "
+			std::cout<<"updating figure-of-merit based on number of cells in tracks: "
 				<<htrack.size()/2<<" for horizontal track and "<<vtrack.size()/2
-				<<" for vertical track"<<endl
-				<<"FINAL FOM FOR MATCH: "<<thisfom<<endl;
+				<<" for vertical track"<<std::endl
+				<<"FINAL FOM FOR MATCH: "<<thisfom<<std::endl;
 #endif
 			matchmerits.at(tracki).at(trackj)=thisfom;
 		}
 	}
 	
 #ifdef TRACKFINDVERBOSE
-	cout<<"matching tracks in two views"<<endl;
+	std::cout<<"matching tracks in two views"<<std::endl;
 #endif
 	double fomthreshold=7.0; // a pair of tracks must have at least this figure-of-merit to be matched
 						   // XXX needs tuning
@@ -939,7 +954,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 			}
 		}
 #ifdef TRACKFINDVERBOSE
-		cout<<"max FOM for pairing "<<matchedtracks.size()<<" is "<<currentmax<<endl;
+		std::cout<<"max FOM for pairing "<<matchedtracks.size()<<" is "<<currentmax<<std::endl;
 #endif
 		// OK, in theory we should just find the maximum of the matchmerits matrix, match that 
 		// pair, mask off that row/column, and repeat.
@@ -951,7 +966,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 			std::vector<mrdcell*> htrack = hpaddletracks.at(maxrow);
 			std::vector<mrdcell*> vtrack = vpaddletracks.at(maxcolumn);
 #ifdef TRACKFINDVERBOSE
-			cout<<"candidate track "<<matchedtracks.size()<<" htrack has "<<htrack.size()
+			std::cout<<"candidate track "<<matchedtracks.size()<<" htrack has "<<htrack.size()
 				<<" cells, goes from ("<<htrack.front()->clusters.second->GetCentreIndex()
 				<<", "<<htrack.front()->clusters.second->layer<<") to ("
 				<<htrack.back()->clusters.first->GetCentreIndex()<<", "
@@ -959,12 +974,12 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				<<" cells, goes from ("<<vtrack.front()->clusters.second->GetCentreIndex()
 				<<", "<<vtrack.front()->clusters.second->layer<<") to ("
 				<<vtrack.back()->clusters.first->GetCentreIndex()<<", "
-				<<vtrack.back()->clusters.first->layer<<"),"<<endl;
+				<<vtrack.back()->clusters.first->layer<<"),"<<std::endl;
 #endif
 			if(htrack.size()<3||vtrack.size()<3){ // aggressively prune bridges
 				bool hisbadmatch = BridgeSearch(htrack, matchedtracks, hpaddletracks, "h");
 #ifdef TRACKFINDVERBOSE
-				if(hisbadmatch) cout<<"h track in this pair bridges two existing tracks, removing it."<<endl;
+				if(hisbadmatch) std::cout<<"h track in this pair bridges two existing tracks, removing it."<<std::endl;
 #endif
 				// we're going to discard this track from all future considerations, so we should
 				// update the merit table to remove it from future pair considerations
@@ -972,7 +987,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				// same now for the vtrack part of the pair
 				bool visbadmatch = BridgeSearch(vtrack, matchedtracks, vpaddletracks, "V");
 #ifdef TRACKFINDVERBOSE
-				if(visbadmatch) cout<<"v track in this pair bridges two existing tracks, removing it."<<endl;
+				if(visbadmatch) std::cout<<"v track in this pair bridges two existing tracks, removing it."<<std::endl;
 #endif
 				if(visbadmatch) for(auto&& avec : matchmerits) avec.at(maxcolumn) = -1;
 				if(hisbadmatch||visbadmatch) continue;
@@ -986,18 +1001,18 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				// an alternative that does not have any cluster sharing.
 				
 #ifdef TRACKFINDVERBOSE
-				cout<<"searching for shared clusters"<<endl;
+				std::cout<<"searching for shared clusters"<<std::endl;
 #endif
 				// ok, first check the htrack
 				bool hhassharedcluster = 
 					SearchForClusterInTracks(matchedtracks, hpaddletracks, htrack, "h");
 #ifdef TRACKFINDVERBOSE
-				if(hhassharedcluster) cout<<"h track in this pair shares clusters with existing track."<<endl;
+				if(hhassharedcluster) std::cout<<"h track in this pair shares clusters with existing track."<<std::endl;
 #endif
 				bool vhassharedcluster = 
 					SearchForClusterInTracks(matchedtracks, vpaddletracks, vtrack, "v");
 #ifdef TRACKFINDVERBOSE
-				if(vhassharedcluster) cout<<"v track in this pair shares clusters with existing track."<<endl;
+				if(vhassharedcluster) std::cout<<"v track in this pair shares clusters with existing track."<<std::endl;
 #endif
 				if(hhassharedcluster&&!vhassharedcluster){
 					// OK, so we're looking at a pair where the h part of the track splits/merges with an
@@ -1005,8 +1020,8 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 					// need this counterpart.
 					// other possible matches for the v part are in the same column.
 #ifdef TRACKFINDVERBOSE
-					cout<<"searching for alternative h track matches to this v track"
-						<<" - this pairing has fom "<<currentmax<<endl;
+					std::cout<<"searching for alternative h track matches to this v track"
+						<<" - this pairing has fom "<<currentmax<<std::endl;
 #endif
 					std::vector<double> otherhcands; // fom column for this v track
 					for(int rowi=0; rowi<matchmerits.size(); rowi++){
@@ -1018,7 +1033,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 						// find the next best matching element for the v part
 						auto nextmaxfomit = std::max_element(otherhcands.begin(), otherhcands.end());
 #ifdef TRACKFINDVERBOSE
-						cout<<"next best match to v track has fom "<<(*nextmaxfomit);
+						std::cout<<"next best match to v track has fom "<<(*nextmaxfomit);
 #endif
 						if((*nextmaxfomit/currentmax)>0.8){
 							// the next best match is also pretty good...
@@ -1032,13 +1047,13 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 								// this other candidate also has shared clusters, so strike it from
 								// the alternate candidates vector and find the next best match
 #ifdef TRACKFINDVERBOSE
-								cout<<" however it also has shared clusters"<<endl;
+								std::cout<<" however it also has shared clusters"<<std::endl;
 #endif
 								otherhcands.at(althrow)=-1;
 								continue;
 							} else {
 #ifdef TRACKFINDVERBOSE
-								cout<<" and it does not have shared clusters"<<endl;
+								std::cout<<" and it does not have shared clusters"<<std::endl;
 #endif
 							}
 							// if it doesn't have any shared clusters, does it have a better match
@@ -1048,7 +1063,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 								auto aahfom = 
 									std::max_element(othermatchesforalt.begin(), othermatchesforalt.end());
 #ifdef TRACKFINDVERBOSE
-								cout<<"this alternative's best match has fom "<<*aahfom;
+								std::cout<<"this alternative's best match has fom "<<*aahfom;
 #endif
 								if(*aahfom<=fomthreshold) break;
 								auto aahfi = std::distance(othermatchesforalt.begin(), aahfom);
@@ -1057,7 +1072,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 									// producing a fairly good pairing (>80% previous fom), and whose best
 									// non-shared match is our v track. Prefer to pair this with the v track.
 #ifdef TRACKFINDVERBOSE
-									cout<<" with our current vtrack. Preventing original pairing"<<endl;
+									std::cout<<" with our current vtrack. Preventing original pairing"<<std::endl;
 #endif
 									makethepair=false;
 									break;
@@ -1072,14 +1087,14 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 										// this alternative has a better match to another track without
 										// any shared clusters. To not mess up that pairing, do not use.
 #ifdef TRACKFINDVERBOSE
-										cout<<" to a track with no shared clusters."
-											<<"Looking for other alternatives."<<endl;
+										std::cout<<" to a track with no shared clusters."
+											<<"Looking for other alternatives."<<std::endl;
 #endif
 										break;
 									} else {
 #ifdef TRACKFINDVERBOSE
-										cout<<" but it's match also has a shared track."
-											<<"Looking at other matches to this alternative."<<endl;
+										std::cout<<" but it's match also has a shared track."
+											<<"Looking at other matches to this alternative."<<std::endl;
 #endif
 										// the best previous pairing for that track has a shared cluster.
 										// keep searching it's other pairings.
@@ -1093,20 +1108,20 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 							// track wasn't up to standards
 							if(!makethepair){
 #ifdef TRACKFINDVERBOSE
-								cout<<"found a suitable htrack alternative. Not making the pair."<<endl;
+								std::cout<<"found a suitable htrack alternative. Not making the pair."<<std::endl;
 #endif
 								break; // we've found a suitable better match
 							} else {
 							// otherwise, continue to the next alternative match for the v track.
 #ifdef TRACKFINDVERBOSE
-								cout<<" done checking this htrack alternative. Moving to next one."<<endl;
+								std::cout<<" done checking this htrack alternative. Moving to next one."<<std::endl;
 #endif
 							}
 						} else {
 							// next best match for the v part isn't so great (<80% fom)
 							// let's give up looking for alternatives and make this pair.
 #ifdef TRACKFINDVERBOSE
-							cout<<"No more htrack alternatives. We'll use it."<<endl;
+							std::cout<<"No more htrack alternatives. We'll use it."<<std::endl;
 #endif
 							break;
 						}
@@ -1117,15 +1132,15 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				// and now a big duplicate for the case of a split v track with not-split h track:
 				if(vhassharedcluster&&!hhassharedcluster){
 #ifdef TRACKFINDVERBOSE
-					cout<<"searching for alternative v track matches to this h track"
-						<<" - this pairing has fom "<<currentmax<<endl;
+					std::cout<<"searching for alternative v track matches to this h track"
+						<<" - this pairing has fom "<<currentmax<<std::endl;
 #endif
 					std::vector<double> othervcands=matchmerits.at(maxrow);
 					othervcands.at(maxcolumn)=-1;
 					while(true) {
 						auto nextmaxfomit = std::max_element(othervcands.begin(), othervcands.end());
 #ifdef TRACKFINDVERBOSE
-						cout<<"next best match to v track has fom "<<(*nextmaxfomit);
+						std::cout<<"next best match to v track has fom "<<(*nextmaxfomit);
 #endif
 						if((*nextmaxfomit/currentmax)>0.8){
 							auto altvcol = std::distance(othervcands.begin(), nextmaxfomit);
@@ -1134,13 +1149,13 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 								SearchForClusterInTracks(matchedtracks, vpaddletracks, alternatevtrack, "v");
 							if(altvhassharedcluster){
 #ifdef TRACKFINDVERBOSE
-								cout<<" however it also has shared clusters"<<endl;
+								std::cout<<" however it also has shared clusters"<<std::endl;
 #endif
 								othervcands.at(altvcol)=-1;
 								continue;
 							} else {
 #ifdef TRACKFINDVERBOSE
-								cout<<" and it does not have shared clusters"<<endl;
+								std::cout<<" and it does not have shared clusters"<<std::endl;
 #endif
 							}
 							std::vector<double> othermatchesforalt;
@@ -1149,13 +1164,13 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 								auto aavfom = 
 									std::max_element(othermatchesforalt.begin(), othermatchesforalt.end());
 #ifdef TRACKFINDVERBOSE
-								cout<<"this alternative's best match has fom "<<*aavfom;
+								std::cout<<"this alternative's best match has fom "<<*aavfom;
 #endif
 								if(*aavfom<=fomthreshold) break;
 								auto aavfi = std::distance(othermatchesforalt.begin(), aavfom);
 								if(aavfi==maxcolumn){
 #ifdef TRACKFINDVERBOSE
-									cout<<" with our current htrack. Preventing original pairing"<<endl;
+									std::cout<<" with our current htrack. Preventing original pairing"<<std::endl;
 #endif
 									makethepair=false;
 									break;
@@ -1165,14 +1180,14 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 										SearchForClusterInTracks(matchedtracks, hpaddletracks, ahh, "h");
 									if(!ahvhsc){
 #ifdef TRACKFINDVERBOSE
-										cout<<" to a track with no shared clusters."
-											<<"Looking for other alternatives."<<endl;
+										std::cout<<" to a track with no shared clusters."
+											<<"Looking for other alternatives."<<std::endl;
 #endif
 										break;
 									} else {
 #ifdef TRACKFINDVERBOSE
-										cout<<" but it's match also has a shared track."
-											<<"Looking at other matches to this alternative."<<endl;
+										std::cout<<" but it's match also has a shared track."
+											<<"Looking at other matches to this alternative."<<std::endl;
 #endif
 										othermatchesforalt.at(aavfi)=-1;
 									}
@@ -1181,17 +1196,17 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 							othervcands.at(altvcol)=-1;
 							if(!makethepair){
 #ifdef TRACKFINDVERBOSE
-								cout<<"found a suitable vtrack alternative. Not making the pair."<<endl;
+								std::cout<<"found a suitable vtrack alternative. Not making the pair."<<std::endl;
 #endif
 								break;
 							} else {
 #ifdef TRACKFINDVERBOSE
-								cout<<" done checking this vtrack alternative. Moving to next one."<<endl;
+								std::cout<<" done checking this vtrack alternative. Moving to next one."<<std::endl;
 #endif
 							}
 						} else {
 #ifdef TRACKFINDVERBOSE
-							cout<<"No more vtrack alternatives. We'll use it."<<endl;
+							std::cout<<"No more vtrack alternatives. We'll use it."<<std::endl;
 #endif
 							break;
 						}
@@ -1211,8 +1226,8 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 			// add this matching to the list of pairs
 			if(makethepair){
 #ifdef TRACKFINDVERBOSE
-				cout<<"matching horizontal track "<<maxrow<<" to vertical track "<<maxcolumn
-					<<", match FOM "<<currentmax<<endl;
+				std::cout<<"matching horizontal track "<<maxrow<<" to vertical track "<<maxcolumn
+					<<", match FOM "<<currentmax<<std::endl;
 #endif
 				matchedtracks.push_back(std::make_pair(maxrow, maxcolumn));
 			}
@@ -1229,15 +1244,15 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 	//////////////////////
 	
 	// only record tracks which are seen in both views
-	if(printtracks) cout<<"Found "<<matchedtracks.size()<<" tracks this subevent."<<endl;
+	if(printtracks) std::cout<<"Found "<<matchedtracks.size()<<" tracks this subevent."<<std::endl;
 	// Make the actual cMRDTrack track objects, now that we have a coherent set of cells:
 	for(int tracki=0; tracki<matchedtracks.size(); tracki++){
 		// get the track (vector of cells)
 		std::vector<mrdcell*> hpaddletrack = hpaddletracks.at(matchedtracks.at(tracki).first);
 		std::vector<mrdcell*> vpaddletrack = vpaddletracks.at(matchedtracks.at(tracki).second);
 #ifdef TRACKFINDVERBOSE
-		cout<<"track "<<tracki<<" has "<<hpaddletrack.size()<<" horizontal and "
-			<<vpaddletrack.size()<<" vertical cells"<<endl;
+		std::cout<<"track "<<tracki<<" has "<<hpaddletrack.size()<<" horizontal and "
+			<<vpaddletrack.size()<<" vertical cells"<<std::endl;
 #endif
 			
 		// declare all the things to make a track class
@@ -1255,7 +1270,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		std::vector<mrdcell> thehtrackcells, thevtrackcells;
 		std::vector<mrdcluster> htrackclusters, vtrackclusters;
 #ifdef TRACKFINDVERBOSE
-		cout<<"getting digit information for htrack clusters"<<endl;
+		std::cout<<"getting digit information for htrack clusters"<<std::endl;
 #endif
 		for(int celli=0; celli<hpaddletrack.size(); celli++){
 			mrdcell* acell = hpaddletrack.at(celli);
@@ -1272,7 +1287,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		}
 		// ...and once for the vpaddle track
 #ifdef TRACKFINDVERBOSE
-		cout<<"getting digit information for vtrack clusters"<<endl;
+		std::cout<<"getting digit information for vtrack clusters"<<std::endl;
 #endif
 		for(int celli=0; celli<vpaddletrack.size(); celli++){
 			mrdcell* acell = vpaddletrack.at(celli);
@@ -1289,7 +1304,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		}
 		
 #ifdef TRACKFINDVERBOSE
-		cout<<"getting additional digit information"<<endl;
+		std::cout<<"getting additional digit information"<<std::endl;
 #endif
 		// use the digit indices to fill in the rest of the information about digits in this track
 		for(int digiti=0; digiti<digitindexes_inthistrack.size(); digiti++){
@@ -1303,13 +1318,13 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		}
 		
 #ifdef TRACKFINDVERBOSE
-		cout<<"emplacing the cMRDTrack"<<endl;
+		std::cout<<"emplacing the cMRDTrack"<<std::endl;
 #endif
 		//emplace_back creates the cMRDTrack in-place to avoid a copy.
 		tracksthissubevent.emplace_back(tracki, wcsimfile, run_id, event_id, mrdsubevent_id, trigger, digitindexes_inthistrack, tubeids_inthistrack, digitqs_inthistrack, digittimes_inthistrack, digitnumphots_inthistrack, digittruetimes_inthistrack, digittrueparents_inthistrack, thehtrackcells, thevtrackcells, htrackclusters, vtrackclusters);
 		
 #ifdef TRACKFINDVERBOSE
-		cout<<"printing and drawing"<<endl;
+		std::cout<<"printing and drawing"<<std::endl;
 #endif
 		// if requested, print and/or draw the track
 		int trackcolourindex;
@@ -1327,7 +1342,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 	}
 	
 #ifdef TRACKFINDVERBOSE
-	cout<<"cleaning up heap clusters and cells"<<endl;
+	std::cout<<"cleaning up heap clusters and cells"<<std::endl;
 #endif
 	// CLEANUP: cMRDTrack stores everything we need: the heap allocations can be freed
 	for(auto acluster : theclusters){
@@ -1339,7 +1354,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 	}
 	thecells.clear();
 #ifdef TRACKFINDVERBOSE
-	cout<<"cleanup complete, returning"<<endl;
+	std::cout<<"cleanup complete, returning"<<std::endl;
 #endif
 }
 
@@ -1385,7 +1400,7 @@ void cMRDSubEvent::LeastSquaresMinimizer(Int_t numdatapoints, Double_t datapoint
 		// Method 1. solve through 'Normal Equations'
 		if(datapointweights==0){
 #ifdef TRACKFINDVERBOSE
-			cout<<"solving with method 1, no weightings"<<endl;
+			std::cout<<"solving with method 1, no weightings"<<std::endl;
 #endif
 			const TVectorD c_norm = NormalEqn(A,y);
 			fit_offset=c_norm(0);
@@ -1393,7 +1408,7 @@ void cMRDSubEvent::LeastSquaresMinimizer(Int_t numdatapoints, Double_t datapoint
 	//		return;
 		} else {
 #ifdef TRACKFINDVERBOSE
-			cout<<"solving with method 2, with weightings"<<endl;
+			std::cout<<"solving with method 2, with weightings"<<std::endl;
 #endif
 			// weightings are passed by providing the 'e' vector to NormalEqn.
 			const TVectorD c_norm = NormalEqn(A,y,e);
@@ -1407,21 +1422,21 @@ void cMRDSubEvent::LeastSquaresMinimizer(Int_t numdatapoints, Double_t datapoint
 		// Method 2. solve through single-value-decomposition (SVD) (numerically  preferred method)
 		if(datapointweights==0){
 #ifdef TRACKFINDVERBOSE
-			cout<<"solving with method 2, no weightings"<<endl;
+			std::cout<<"solving with method 2, no weightings"<<std::endl;
 #endif
 			// no weightings, proceed with unweighted datapoints
 			TDecompSVD svd(A);
 			Bool_t ok;
 			const TVectorD c_svd = svd.Solve(y,ok);
 #ifdef TRACKFINDVERBOSE
-			cout<<"TDecompSVD returned ok="<<ok<<endl;
+			std::cout<<"TDecompSVD returned ok="<<ok<<std::endl;
 #endif
 			fit_offset=c_svd(0);
 			fit_gradient=c_svd(1);
 	//		return;
 		} else {
 #ifdef TRACKFINDVERBOSE
-			cout<<"solving with method 2, with weightings"<<endl;
+			std::cout<<"solving with method 2, with weightings"<<std::endl;
 #endif
 			// weightings - fill weighted matrix/vectors
 			TMatrixD Aw = A;
@@ -1435,7 +1450,7 @@ void cMRDSubEvent::LeastSquaresMinimizer(Int_t numdatapoints, Double_t datapoint
 			Bool_t ok;
 			const TVectorD c_svd = svd.Solve(yw,ok);
 #ifdef TRACKFINDVERBOSE
-			cout<<"TDecompSVD returned ok="<<ok<<endl;
+			std::cout<<"TDecompSVD returned ok="<<ok<<std::endl;
 #endif
 			fit_offset=c_svd(0);
 			fit_gradient=c_svd(1);
@@ -1447,8 +1462,8 @@ void cMRDSubEvent::LeastSquaresMinimizer(Int_t numdatapoints, Double_t datapoint
 	for(int i=0; i<numdatapoints; i++){
 		Double_t fitpred = (fit_gradient*datapointxs[i]) + fit_offset;
 #ifdef TRACKFINDVERBOSE
-		cout<<"predicted datapoint "<<i<<" = "<<fitpred
-			<<", actual datapoint = "<<datapointys[i]<<endl;
+		std::cout<<"predicted datapoint "<<i<<" = "<<fitpred
+			<<", actual datapoint = "<<datapointys[i]<<std::endl;
 #endif
 		// calculate the error on the position from the paddle extents. Since the cluster may span
 		// several paddles, we have to calculate this on a per-cluster basis
@@ -1460,17 +1475,17 @@ void cMRDSubEvent::LeastSquaresMinimizer(Int_t numdatapoints, Double_t datapoint
 
 bool cMRDSubEvent::SearchForClusterInTracks(const std::vector<std::pair<int,int> > &matchedtracks, const std::vector<std::vector<mrdcell*> > &allpaddletracks, const std::vector<mrdcell*> tracktotest, const std::string horv){
 #ifdef TRACKFINDVERBOSE
-	cout<<"searching for clusters in ";
-	(horv=="h") ? cout<<"h" : cout<<"v";
-	cout<<" track "<<endl;
+	std::cout<<"searching for clusters in ";
+	(horv=="h") ? std::cout<<"h" : std::cout<<"v";
+	std::cout<<" track "<<std::endl;
 #endif
 	bool hassharedcluster=false;
 	std::map<mrdcluster*,int> clustermap;
 	for(auto&& acell : tracktotest) clustermap.emplace(acell->clusters.first,1);
 	clustermap.emplace(tracktotest.back()->clusters.second,1);
 #ifdef TRACKFINDVERBOSE
-	cout<<"track to compare has "<<clustermap.size()<<" clusters, looking for these clusters in "
-		<<matchedtracks.size()<<" existing tracks"<<endl;
+	std::cout<<"track to compare has "<<clustermap.size()<<" clusters, looking for these clusters in "
+		<<matchedtracks.size()<<" existing tracks"<<std::endl;
 #endif
 	
 	for(auto apair : matchedtracks){                                   // loop over existing pairs

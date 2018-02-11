@@ -1,5 +1,5 @@
 #ifndef _MRD_SPECS_
-#define _MRD_SPECS_ 1
+#define _MRD_SPECS_ 
 
 // first panel is a HORIZONTAL LAYER.
 // TODO: this should probably be a namespace
@@ -87,7 +87,7 @@ const Float_t MRD_steel_height = (274./2.);     // half height of steel in cm
 ########## MRD scintillator layer 9  (V) at z=445.07 ########## 5
 ########## MRD scintillator layer 10 (H) at z=457.18 ##########
 */
-std::vector<double> mrdscintlayers{336.080, 348.190, 360.300, 372.410, 384.520, 396.630, 408.740, 420.850, 432.960, 445.070, 457.180 };
+const std::vector<double> mrdscintlayers{336.080, 348.190, 360.300, 372.410, 384.520, 396.630, 408.740, 420.850, 432.960, 445.070, 457.180 };
 
 //TODO: should retrieve this info from the geo in wcsimanalysis class
 const Float_t tank_start = 15.70;           // front face of the tank in cm
