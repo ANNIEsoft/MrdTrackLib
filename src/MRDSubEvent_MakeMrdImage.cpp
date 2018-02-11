@@ -1,19 +1,23 @@
 /* vim:set noexpandtab tabstop=4 wrap */
-#include "TRandom.h"
+
+#include "MRDSubEventClass.hh"
+#include "MRDspecs.hh"
+
 #include "TCanvas.h"
 #include "TBox.h"
-#include "TLine.h"
-#include "TArrow.h"
-#include <MRDSubEventClass.hh>
+#include "TText.h"
+#include "TVector3.h"
 
+#include <algorithm>
+#include <cmath>
 
-//#ifndef DRAWVERBOSE
-//#define DRAWVERBOSE 1
-//#endif
+#ifndef DRAWVERBOSE
+//#define DRAWVERBOSE
+#endif
 
-//#ifndef DRAWSUPERVERBOSE
-//#define DRAWSUPERVERBOSE 1
-//#endif
+#ifndef DRAWSUPERVERBOSE
+//#define DRAWSUPERVERBOSE
+#endif
 
 void cMRDSubEvent::DrawMrdCanvases(){
 #ifdef DRAWVERBOSE
@@ -138,7 +142,7 @@ void cMRDSubEvent::DrawMrdCanvases(){
 			Int_t theindex = std::distance(pmts_hit.begin(),theit);
 			thetime = digi_ts.at(theindex);
 			Double_t relatime = (maxtime!=mintime) ? (thetime-mintime)/(maxtime-mintime) : 0.;
-			Int_t colorindex = TMath::Floor((aspectrumv.size()-1)*(relatime)); //relatime/2.
+			Int_t colorindex = floor((aspectrumv.size()-1)*(relatime)); //relatime/2.
 			paddlecolour = aspectrumv.at(colorindex);
 			// kRed is an EColor, kRed+2 is an Int_t, representing generically a TColor, TBox requires a Color_t!
 		} else {
@@ -255,7 +259,7 @@ void cMRDSubEvent::DrawMrdCanvases(){
 				holderx1=((MRDSpecs::scintalugap*10)/(MRDSpecs::maxwidth*1.2));
 				holderx2=(MRDSpecs::scinthfullylen/(MRDSpecs::maxwidth*1.2)); // TODO: wrong length, should be MRDSpecs::scintvfullylen
 				// some paddles are shown in both views, so we have more TBoxes than real PMTs
-				Int_t overflowindex = MRDSpecs::nummrdpmts + (2*mrdcluster::paddle_layers.at(paddle));	// RH paddle
+				Int_t overflowindex = MRDSpecs::nummrdpmts + (2*MRDSpecs::paddle_layers.at(paddle));	// RH paddle
 				if(paddlepointers.at(overflowindex)==0){
 					thepaddle = new TBox(holderz+otherviewoffset,0.5+holderx1,holderz+(scintboxwidth/MRDSpecs::mrdZlen)+otherviewoffset, 0.5+holderx1+holderx2);
 					paddlepointers.at(overflowindex) = thepaddle;
@@ -296,7 +300,7 @@ void cMRDSubEvent::DrawMrdCanvases(){
 				imgcanvas->cd(2);
 				holdery1=((MRDSpecs::scintalugap*10)/(MRDSpecs::maxheight*1.2));
 				holdery2=(MRDSpecs::scintvfullylen/(MRDSpecs::maxheight*1.2));
-				Int_t overflowindex = MRDSpecs::nummrdpmts + (2*mrdcluster::paddle_layers.at(paddle));	// top paddle
+				Int_t overflowindex = MRDSpecs::nummrdpmts + (2*MRDSpecs::paddle_layers.at(paddle));	// top paddle
 				if(paddlepointers.at(overflowindex)==0){
 					thepaddle = new TBox(holderz+otherviewoffset,holdery1+0.5,holderz+(scintboxwidth/MRDSpecs::mrdZlen)+otherviewoffset,0.5+holdery1+holdery2);
 					paddlepointers.at(overflowindex) = thepaddle;

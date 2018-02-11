@@ -1,12 +1,18 @@
 /* vim:set noexpandtab tabstop=4 wrap */
-//#ifndef MRDSUBEVENTDRAWTRUETRACKS
-//#define MRDSUBEVENTDRAWTRUETRACKS
+
+#include "MRDSubEventClass.hh"
+#include "MRDspecs.hh"
+
+#include "TVector3.h"
+#include "TCanvas.h"
+#include "TArrow.h"
+
+#include <algorithm>
+#include <iostream>
 
 #ifndef DRAWTRUEVERBOSE
-#define DRAWTRUEVERBOSE
+//#define DRAWTRUEVERBOSE
 #endif
-
-#include <MRDSubEventClass.hh>
 
 bool CheckLineBox( TVector3 L1, TVector3 L2, TVector3 B1, TVector3 B2, TVector3 &Hit, TVector3 &Hit2, bool &error);
 int inline InBox( TVector3 Hit, TVector3 B1, TVector3 B2, const int Axis);
@@ -24,7 +30,7 @@ void cMRDSubEvent::DrawTrueTracks(){
 #endif
 	
 #ifdef DRAWTRUEVERBOSE
-	//	std::cout<<"Adding lines for "<<truetracks.size()<<" true tracks"<<std::endl;
+	std::cout<<"Adding lines for "<<truetracks.size()<<" true tracks"<<std::endl;
 #endif
 	
 	int trackit=0;
@@ -33,7 +39,7 @@ void cMRDSubEvent::DrawTrueTracks(){
 		
 //		// TODO maybe we should colour the track by time?
 //		Double_t thetime = digi_ts.at(theindex);
-//		Double_t relatime = (thetime-mintime)/(maxtime-mintime);
+//		Double_t relatime = (thetime-std::mintime)/(maxtime-std::mintime);
 //		Int_t colorindex = TMath::Floor((aspectrumv.size()-1)*(relatime/2));
 //		paddlecolour = aspectrumv.at(colorindex);
 		
@@ -511,4 +517,3 @@ bool CheckLineBox( TVector3 L1, TVector3 L2, TVector3 B1, TVector3 B2, TVector3 
 	}
 }
 
-//#endif

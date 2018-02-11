@@ -1,0 +1,62 @@
+# Assumes that the script is in headertest.cpp
+# and it must contain a main() function
+
+SRC_DIR     = src
+INC_DIR     = include
+#BUILD_DIR   = build
+ # build dir breaks implicit rules
+
+CPPFLAGS    = -I $(INC_DIR) # define standard flag so it gets used by implicit rules
+CXXFLAGS    = -g -Wall -fdiagnostics-color=always -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable
+CPPFLAGS   += `root-config --cflags`
+ROOTCINTFLAGS  = `root-config --cflags`
+LDFLAGS     = `root-config --libs` -lMinuit
+OUTPUT_OPTION = -o $@
+
+SRC         = $(wildcard $(SRC_DIR)/*.cpp)
+OBJ         = $(SRC:%.cpp=%.o)
+#OBJ         = $(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/%,$(SRC:%.cpp=%.o))
+HDR         = $(wildcard $(INC_DIR)/*.hh)
+HDR_NAMES   = $(patsubst $(INC_DIR)/%,%,$(HDR))
+
+EXECUTABLE=headertest
+	
+all: $(EXECUTABLE)
+
+## $(SRC_DIR)/FindMrdTracks_RootDict.c
+#% : $(SRC)
+$(EXECUTABLE) : $(OBJ) $(SRC_DIR)/FindMrdTracks_RootDict.o
+	@echo "making $@"
+	g++ $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ $(OUTPUT_OPTION)
+
+#clean:
+#	@rm -f ./*~ ./*.o ./headertest
+
+$(SRC_DIR)/FindMrdTracks_RootDict.cpp: $(INC_DIR)/FindMrdTracks_Linkdef.h
+	@echo "making $@"
+	rootcint -f $@ $(ROOTCINTFLAGS) -I$(INC_DIR) $(HDR_NAMES) $^
+ 
+#$(SRC_DIR)/libFindMrdTracks.so: $(SRC_DIR)/FindMrdTracks_Dict.cpp $(SRC)
+#	g++ -shared $(CXXFLAGS) $(ROOTFLAGS) $^ $(OUTPUT_OPTION)
+
+$(INC_DIR)/FindMrdTracks_Linkdef.h:
+	@echo "making $@"
+	@cat $(INC_DIR)/linkdefpreamble.txt > $@
+	@for file in $(INC_DIR)/*.hh;\
+	  do echo -n $$(cat $(INC_DIR)/linkdefincludeheader.txt) >> $@;\
+	  echo " \"$${file}\";" >> $@;\
+	done
+	@cat $(INC_DIR)/linkdefpostamble.txt >> $@
+
+-include $(SRC:%.cpp=%.d)
+
+#######################################################
+# simple template with automatic dependency inclusion #
+# SRC = $(wildcard *.cpp)                             #
+# all: main                                           #
+#                                                     #
+# main: $(SRC:%.cpp=%.o)                              #
+#	g++ -std=c++1y -MD -MP -o $@ $^               #
+#                                                     #
+# -include $(SRC:%.cpp=%.d)                           #
+#######################################################

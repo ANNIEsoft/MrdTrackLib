@@ -1,37 +1,29 @@
 /* vim:set noexpandtab tabstop=4 wrap */
-// =====================================================================
-// ********* trajectory reconstruction: main *****************
-/* information received during construction */
-// event information: MRDtrackID, wcsimfile, run_id, event_id, subtrigger, digi_ids, 
-// digit information: pmts_hit, digi_qs, digi_ts, 
-// truth information: digi_numphots, digi_phot_ts, digi_phot_parents
-/* make functions to retrieve these? */
-// digits(), trueTrackID(-1)
-// ------------------------
-// 
-/* information to calculate here: */
-// TODO: KEStart(), KEEnd(), particlePID(), tracktype() (one track, 2 tracks, inconsistent hits...),
-// Done: layers_hit(), eDepsInLayers(), recovalshoriz(), recovalsvert()
-// ^^^^^^^^^^^^^^^^^^^^^^^^
+
+#include "MRDTrackClass.hh"
+#include "MRDspecs.hh"
+
+#include "TF1.h"
+#include "TGraphErrors.h"
+#include "TCanvas.h"
+#include "TAxis.h"
+#include "TFitResult.h"
+#include "TMatrixD.h"
+#include "TMinuit.h"
+
+#include <algorithm>
+#include <iostream>
+#include <cmath>
+#include <cassert>
 
 #ifndef MRDTrack_RECO_VERBOSE
-#define MRDTrack_RECO_VERBOSE
+//#define MRDTrack_RECO_VERBOSE
 #endif
 
-#include <MRDTrackClass.hh>
-
 //#include "Math/Polynomial.h"  // can be used to find ROOTs of polynomials
+//#include "TMath.h"
 
-double xgradmin,ygradmin,xgradmax,ygradmax,xoffmin,yoffmin,xoffmax,yoffmax;
-
-TF1 cMRDTrack::MRDenergyvspenetration=TF1("af","expo(0)+pol0(2)+([3]/([4]-x))",0,1.6);
-//  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE
-//   1  p0          -3.62645e+00   2.40923e+01   2.22710e-04   8.81482e-04
-//   2  p1           3.75503e+00   1.56841e+01   1.89877e-04   8.82181e-04
-//   3  p2           2.68525e+00   7.79532e+00   1.11828e-04   6.30502e-04
-//   4  p3           3.59244e+00   1.46368e+01   1.30963e-04   1.08201e-03
-//   5  p4           1.66969e+00   6.49103e-01   2.51472e-05  -6.46072e-03
-Bool_t cMRDTrack::fillstaticmembers=true;
+static double xgradmin,ygradmin,xgradmax,ygradmax,xoffmin,yoffmin,xoffmax,yoffmax;
 
 void cMRDTrack::DoReconstruction(){
 #ifdef MRDTrack_RECO_VERBOSE
@@ -55,7 +47,7 @@ void cMRDTrack::DoReconstruction(){
 		// get the extent of the corresponding paddle
 		int digiindex = digi_ids.at(i);
 		Int_t tube_id = pmts_hit.at(i);
-		Int_t strucklayer = mrdcluster::paddle_layers.at(tube_id);
+		Int_t strucklayer = MRDSpecs::paddle_layers.at(tube_id);
 		if(std::count(layers_hit.begin(), layers_hit.end(), strucklayer)==0){
 			layers_hit.push_back(strucklayer);
 		}
@@ -70,11 +62,11 @@ void cMRDTrack::DoReconstruction(){
 #endif
 	// calculate track fit start and endpoints from frontmost and backmost cell z values,
 	// and fit formulae to determine x and y
-	Double_t trackfitstartz = TMath::Min(MRDSpecs::mrdscintlayers.at(vtrackclusters.back().layer),
+	Double_t trackfitstartz = std::min(MRDSpecs::mrdscintlayers.at(vtrackclusters.back().layer),
 										MRDSpecs::mrdscintlayers.at(htrackclusters.back().layer));
 	Double_t trackfitstarty = htrackorigin + htrackgradient*trackfitstartz;
 	Double_t trackfitstartx = vtrackorigin + vtrackgradient*trackfitstartz;
-	Double_t trackfitstopz = TMath::Max(MRDSpecs::mrdscintlayers.at(vtrackclusters.front().layer),
+	Double_t trackfitstopz = std::max(MRDSpecs::mrdscintlayers.at(vtrackclusters.front().layer),
 										MRDSpecs::mrdscintlayers.at(htrackclusters.front().layer));
 	Double_t trackfitstopy = htrackorigin + htrackgradient*trackfitstopz;
 	Double_t trackfitstopx = vtrackorigin + vtrackgradient*trackfitstopz;
@@ -139,8 +131,8 @@ void cMRDTrack::CalculateEnergyLoss(){
 	double muXdistanceinMRD=trackfitstop.X()-trackfitstart.X();
 	double muYdistanceinMRD=trackfitstop.Y()-trackfitstart.Y();
 	mutracklengthinMRD = 
-		TMath::Sqrt(TMath::Power(muXdistanceinMRD,2)+TMath::Power(muYdistanceinMRD,2)
-		+TMath::Power(penetrationdepth,2));
+		sqrt(pow(muXdistanceinMRD,2)+pow(muYdistanceinMRD,2)
+		+pow(penetrationdepth,2));
 	// calculate the energy loss
 	double dEdx = MRDenergyvspenetration.Eval(trackangle);
 	EnergyLoss = mutracklengthinMRD*dEdx;
@@ -151,10 +143,10 @@ void cMRDTrack::CalculateEnergyLoss(){
 	double htrackgradshallowest = htrackgradient+(htrackgradienterror*((htrackgradient>0) ? -1. : 1.));
 	double vtrackgradshallowest = vtrackgradient+(vtrackgradienterror*((vtrackgradient>0) ? -1. : 1.));
 	
-	double trackanglemax=TMath::Sqrt(TMath::Power(htrackgradsteepest,2)
-									+TMath::Power(vtrackgradsteepest,2));
-	double trackanglemin=TMath::Sqrt(TMath::Power(htrackgradshallowest,2)
-									+TMath::Power(vtrackgradshallowest,2));
+	double trackanglemax=sqrt(pow(htrackgradsteepest,2)
+									+pow(vtrackgradsteepest,2));
+	double trackanglemin=sqrt(pow(htrackgradshallowest,2)
+									+pow(vtrackgradshallowest,2));
 	double dEdxmax = MRDenergyvspenetration.Eval(trackanglemax); // TODO evaluate @ fit min when availabe
 	double dEdxmin = MRDenergyvspenetration.Eval(trackanglemin); // TODO evaluate @ fit max when available
 	double EnergyLossMax = mutracklengthinMRD*dEdxmax;
@@ -177,14 +169,14 @@ void cMRDTrack::DoTGraphErrorsFit(){
 		hclusterzpositions.push_back(MRDSpecs::mrdscintlayers.at(acluster.layer));
 		hclusterxpositions.push_back(acluster.GetCentre()/10.);
 		hclusterzerrors.push_back(MRDSpecs::scintfullzlen);
-		hclusterxerrors.push_back(TMath::Abs(acluster.GetXmax()-acluster.GetXmin())/10.);
+		hclusterxerrors.push_back(abs(acluster.GetXmax()-acluster.GetXmin())/10.);
 	}
 	std::vector<double> vclusterzpositions, vclusterxpositions, vclusterzerrors, vclusterxerrors;
 	for(auto acluster : vtrackclusters){
 		vclusterzpositions.push_back(MRDSpecs::mrdscintlayers.at(acluster.layer));
 		vclusterxpositions.push_back(acluster.GetCentre()/10.);
 		vclusterzerrors.push_back(MRDSpecs::scintfullzlen);
-		vclusterxerrors.push_back(TMath::Abs(acluster.GetXmax()-acluster.GetXmin())/10.);
+		vclusterxerrors.push_back(abs(acluster.GetXmax()-acluster.GetXmin())/10.);
 	}
 	
 #ifdef MRDTrack_RECO_VERBOSE
@@ -233,7 +225,7 @@ void cMRDTrack::DoTGraphErrorsFit(){
 #ifdef MRDTrack_RECO_VERBOSE
 	std::cout<<"htrackfitchi2="<<htrackfitchi2<<std::endl;
 	//auto returnedcovmatrix = htrackfitresult->GetCovarianceMatrix();
-	//std::std::cout << type_name<decltype(returnedcovmatrix)>() << std::endl;
+	//std::cout << type_name<decltype(returnedcovmatrix)>() << std::endl;
 	std::cout<<"htrackfitcov has "<<htrackfitcov.GetNrows()<<" rows and "<<htrackfitcov.GetNcols()<<" columns"<<std::endl;
 #endif
 	htrackfitcov = htrackfitresult->GetCovarianceMatrix();
@@ -262,18 +254,18 @@ void cMRDTrack::DoTGraphErrorsFit(){
 	std::cout<<"vtrackfitchi2="<<vtrackfitchi2<<std::endl;
 	std::cout<<"vtrackfitcov has "<<vtrackfitcov.GetNrows()<<" rows and "<<vtrackfitcov.GetNcols()<<" columns"<<std::endl;
 	//c1.SaveAs(TString::Format("vtrackfit_%d.png",MRDtrackID));
-		std::cout<<"vtrack fit had angle "<<((180/TMath::Pi())*TMath::ATan(vtrackgradient))<<std::endl;
+		std::cout<<"vtrack fit had angle "<<((180/M_PI)*atan(vtrackgradient))<<std::endl;
 		std::cout<<"fit parameters were "<<vtrackorigin<<", "<<vtrackgradient
 			<<" with errors "<<vtrackoriginerror<<", "<<vtrackgradienterror<<std::endl;
 #endif
 	
 #ifdef MRDTrack_RECO_VERBOSE
-	std::cout<<"htrack fit had angle "<<((180/TMath::Pi())*TMath::ATan(htrackgradient))<<std::endl;
+	std::cout<<"htrack fit had angle "<<((180/M_PI)*atan(htrackgradient))<<std::endl;
 	std::cout<<"fit parameters were "<<htrackorigin<<", "<<htrackgradient
 		<<" with errors "<<htrackoriginerror<<", "<<htrackgradienterror<<std::endl;
 	std::cout<<"htrack fit covariance matrix: "<<std::endl;
 	htrackfitcov.Print();
-	std::cout<<"vtrack fit had angle "<<((180/TMath::Pi())*TMath::ATan(vtrackgradient))<<std::endl;
+	std::cout<<"vtrack fit had angle "<<((180/M_PI)*atan(vtrackgradient))<<std::endl;
 	std::cout<<"fit parameters were "<<vtrackorigin<<", "<<vtrackgradient
 		<<" with errors "<<vtrackoriginerror<<", "<<vtrackgradienterror<<std::endl;
 	std::cout<<"vtrack fit covariance matrix: "<<std::endl;
@@ -403,23 +395,23 @@ void cMRDTrack::TestCovarianceErrorCalc(){
 	testgraph->SetTitle("1-sigma uncertainties on fit parameters");
 	
 	TMatrixD covmat(2,2);
-	//	gMinuit->mnemat(covmat.GetMatrixArray(),2);
+	gMinuit->mnemat(covmat.GetMatrixArray(),2);
 	std::cout<<"printing minuit covmat"<<std::endl;
 	covmat.Print(); 
 	std::cout<<"printed. Printing correlation matrix:"<<std::endl;
-	//gMinuit->mnmatu(1);
+	gMinuit->mnmatu(1);
 	//TCanvas* c2 = new TCanvas();
 	std::cout<<"drawing minuit ellipse"<<std::endl;
 	std::cout<<"setting errordef"<<std::endl;
-	//	gMinuit->SetErrorDef(1);
+	gMinuit->SetErrorDef(1);
 	std::cout<<"getting graph"<<std::endl;
-	//	TGraph* mingraph = (TGraph*)gMinuit->Contour(50,0,1);
-	//	std::cout<<"graph at "<<mingraph<<", drawing"<<std::endl;
-	//	mingraph->SetLineColor(kRed);
-	//mingraph->SetMarkerStyle(2);
-	//mingraph->Draw("l same");
-	//	mingraph->SetTitle("Minuit Plot");
-	//	gPad->WaitPrimitive();
+	TGraph* mingraph = (TGraph*)gMinuit->Contour(50,0,1);
+	std::cout<<"graph at "<<mingraph<<", drawing"<<std::endl;
+	mingraph->SetLineColor(kRed);
+	mingraph->SetMarkerStyle(2);
+	mingraph->Draw("l same");
+	mingraph->SetTitle("Minuit Plot");
+	gPad->WaitPrimitive();
 	
 }
 
@@ -450,7 +442,7 @@ bool cMRDTrack::CheckTankIntercept(double htrackgradientin, double vtrackgradien
 		<<projectedtankexity-MRDSpecs::tank_yoffset
 		<<" relative to tank half-height "<<MRDSpecs::tank_halfheight<<std::endl;
 #endif
-	if(TMath::Abs(projectedtankexity-MRDSpecs::tank_yoffset)>MRDSpecs::tank_halfheight){
+	if(abs(projectedtankexity-MRDSpecs::tank_yoffset)>MRDSpecs::tank_halfheight){
 #ifdef MRDTrack_RECO_VERBOSE
 		std::cout<<"tank misses tank height"<<std::endl;
 #endif
@@ -475,7 +467,7 @@ bool cMRDTrack::CheckTankIntercept(double htrackgradientin, double vtrackgradien
 		std::cout<<"x-z plane interception equation has determinant "<<determinnt<<std::endl;
 #endif
 		if(determinnt>=0){
-			projectedtankexitz = ( -coeffb + TMath::Sqrt(determinnt) ) / (2*coeffa);
+			projectedtankexitz = ( -coeffb + sqrt(determinnt) ) / (2*coeffa);
 #ifdef MRDTrack_RECO_VERBOSE
 			std::cout<<"x-z plane interception occurs at z= "<<projectedtankexitz
 				<<" in coordinates with origin centred on the tank"<<std::endl;
@@ -529,7 +521,7 @@ bool cMRDTrack::CheckTankIntercept(double htrackgradientin, double vtrackgradien
 #ifdef MRDTrack_RECO_VERBOSE
 				std::cout<<", calculating corresponding tank entry point"<<std::endl;
 #endif
-				projectedtankexitz = ( -coeffb - TMath::Sqrt(determinnt) ) / (2*coeffa);
+				projectedtankexitz = ( -coeffb - sqrt(determinnt) ) / (2*coeffa);
 				projectedtankexitz += MRDSpecs::tank_start + MRDSpecs::tank_radius; // remove tank-center offset
 				projectedtankexitx = vtrackoriginin + (vtrackgradientin*projectedtankexitz);
 				projectedtankexity = htrackoriginin + htrackgradientin*projectedtankexitz;
@@ -627,19 +619,19 @@ void cMRDTrack::CheckIfStopping(){
 	double depthfidfrac = 0.9;
 	double widthfidfrac = 0.9;
 	double heightfidfrac = 0.9;
-	if( TMath::Abs(trackfitstop.Z())>(MRDSpecs::MRD_start+(MRDSpecs::MRD_depth*depthfidfrac)) ){
+	if( abs(trackfitstop.Z())>(MRDSpecs::MRD_start+(MRDSpecs::MRD_depth*depthfidfrac)) ){
 		// if the last point is sufficiently close to the MRD end, we consider it as penetrated
 		// and take the 'zstop' as MRD_end. But, we can check from the angle if it would have exited through the sides first.
 		double projectedxexit = vtrackorigin + vtrackgradient*MRDSpecs::MRD_end;
 		double projectedyexit = htrackorigin + htrackgradient*MRDSpecs::MRD_end;
-		if( (TMath::Abs(projectedxexit)<MRDSpecs::MRD_width) && 
-			(TMath::Abs(projectedyexit)<MRDSpecs::MRD_height) ){
+		if( (abs(projectedxexit)<MRDSpecs::MRD_width) && 
+			(abs(projectedyexit)<MRDSpecs::MRD_height) ){
 			ispenetrating=true;
 		} else {
 			sideexit=true;
 		}
-	} else if ( (TMath::Abs(trackfitstop.X())>(MRDSpecs::MRD_width*widthfidfrac))   ||
-				(TMath::Abs(trackfitstop.Y())>(MRDSpecs::MRD_height*heightfidfrac)) ){
+	} else if ( (abs(trackfitstop.X())>(MRDSpecs::MRD_width*widthfidfrac))   ||
+				(abs(trackfitstop.Y())>(MRDSpecs::MRD_height*heightfidfrac)) ){
 		sideexit=true;
 	} else {
 		isstopped=true;

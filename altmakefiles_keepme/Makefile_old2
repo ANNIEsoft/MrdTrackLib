@@ -1,0 +1,62 @@
+## VARIABLES
+## =========
+ROOTCC          = `root-config --cxx`        # returns g++
+ROOTCXXFLAGS    = `root-config --cflags`     # returns some compiler flags and -I ROOT_INC_DIR
+ROOTLIBS        = `root-config --libs`       # returns some common libs (-lCore -lRIO ...) and -L ROOT_LIB_DIR
+ROOTLIBS       += -lMinuit                   # this is missed
+ROOTGLIBS       = `root-config --glibs`      # returns the same as --libs but also includes -lGUI
+ROOTLDFLAGS     = `root-config --ldflags`    # just returns -m64?
+RootInc         = -I `root-config --incdir`
+RootLib         = -L `root-config --libdir`
+
+CXX             = g++
+CXXFLAGS        = -std=c++1y -g -fdiagnostics-color=always -Wall
+CXXFLAGS       += $(ROOTCXXFLAGS)
+
+# LDFLAGS is for flags and library paths, LDLIBS  is for the libraries. ROOTLIBS combines both
+LDFLAGS         = $(RootLib)
+LDLIBS          = -lCore -lRIO -lHist -lGraf -lGraf3d -lGpad -lTree -lMatrix -lPhysics -lMathCore -lThread -lMultiProc -pthread -lm -ldl -rdynamic
+
+OUTPUT_OPTION=-MMD -MP -o $@
+
+# all variables must be defined before any targets
+
+## SOURCES AND TARGETS
+## ===================
+
+SRC        = $(wildcard *.cxx)
+OBJ        = $(SRC:.cxx=.o)
+DEP        = $(SRC:.cxx=.d)
+
+EXECUTABLE      = headertest
+
+## COMPILATION RULES
+## =================
+
+# phony targets don't generate an output file, so it won't check for timestamps
+.PHONY: clean
+
+all: $(EXECUTABLE)
+
+info: 
+	@echo "sources = $(SRC)"
+	@echo "objects = $(OBJ)"
+
+$(EXECUTABLE): headertest.o
+
+clean:
+	$(RM) $(EXECUTABLE) $(DEP) $(OBJ)
+
+dirs:
+	# make the directory, including parent directories if necessary (-p flag) 
+	@echo "making dirs"
+	$(shell mkdir -p $(DEPDIR))
+	$(shell mkdir -p $(BUILDDIR))
+
+# for automatic dependency inclusion, this line must be after the default target
+-include $(DEP)
+
+#= NOTES
+## =====
+# precede a line with @ to suppress it being echoed before executed
+# precede a line with - to suppress errors and continue anyway

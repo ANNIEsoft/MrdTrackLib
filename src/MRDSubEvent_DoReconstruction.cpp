@@ -1,43 +1,34 @@
 /* vim:set noexpandtab tabstop=4 wrap */
-//#ifndef __CINT__
-#include "Riostream.h"
+
+#include "MRDSubEventClass.hh"
+#include "MRDTrackClass.hh"
+#include "MrdCluster.hh"
+#include "MrdCell.hh"
+#include "MRDspecs.hh"
+
 #include "TMatrixD.h"
 #include "TVectorD.h"
-#include "TGraphErrors.h"
 #include "TDecompChol.h"
 #include "TDecompSVD.h"
-#include "TF1.h"
-#include "TBox.h"
-//#endif
-#include "MRDSubEventClass.hh"
 
-//#ifndef TRACKFINDVERBOSE
-//#define TRACKFINDVERBOSE 1
-//#endif
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <cassert>
+#include <map>
 
-//class mrdcluster;
-//class mrdcell;
+#ifndef TRACKFINDVERBOSE
+//#define TRACKFINDVERBOSE
+#endif
+
+class mrdcluster;
+class mrdcell;
 const Int_t mintracklength=0;	// tracks must have (mintracklength+1) cells to qualify
 								// be generous - allow 1-cell tracks. We'll require tank coincidence anyway.
 const Double_t chi2limit=125.0; //80.0;	// max chi^2 from a linear least squares fit to all 3 clusters for those
 								// to be classed as clusters in the same track
-								// 40 - offset of 1 cell. but doesn't allow multi-digit clusters 
-		//140						// which increase opening angle to ~70. This doesn't allow large kinks
-
-Int_t mrdcell::cellcounter=0;
-Bool_t cMRDSubEvent::fillstaticmembers=true;
-TCanvas* cMRDSubEvent::imgcanvas=0;
-TText* cMRDSubEvent::titleleft=0;
-TText* cMRDSubEvent::titleright=0;
-// allocate paddle vector now: they'll be filled in first call to DrawMrdCanvases
-std::vector<TBox*> cMRDSubEvent::paddlepointers(MRDSpecs::nummrdpmts+(2*MRDSpecs::numpanels));
-//std::vector<Int_t> cMRDSubEvent::aspectrumv(19);
-//std::vector<Int_t> cMRDSubEvent::aspectrumv = ( []()->std::vector<Int_t> { std::vector<Int_t> temp {kYellow, kOrange, (kOrange-3), (kOrange+8), (kOrange+10), kRed, (kRed+1), (kPink+4), (kMagenta+2), (kMagenta+1), kMagenta, (kViolet-2), (kViolet-3), (kViolet+7), (kViolet+9), (kBlue+2), (kBlue+1), kAzure, (kAzure+7)}; return temp; }() );
-//std::vector<Int_t> cMRDSubEvent::aspectrumv{kYellow, kOrange, (kOrange-3), (kOrange+8), (kOrange+10), kRed, (kRed+1), (kPink+4), (kMagenta+2), (kMagenta+1), kMagenta, (kViolet-2), (kViolet-3), (kViolet+7), (kViolet+9), (kBlue+2), (kBlue+1), kAzure, (kAzure+7)};
-std::vector<Int_t> cMRDSubEvent::aspectrumv{1435, 1436, 1437, 1438, 1439, 1440, 1441, 1442, 1443, 1443, 1444, 1445, 885, 1446, 1447, 1448, 879, 1449, 1450};
-std::vector<std::string> cMRDSubEvent::colorhexes{"#21ffff", "#20deea", "#1fbcd5", "#21a8cd", "#269bcb", "#2b8fca", "#367fcb", "#416fcb", "#4965cd", "#505dcf", "#5855d0", "#6247cf", "#6d3ace", "#782acd", "#851acc", "#910dcc", "#9e07cd", "#aa00ce", "#bf00d7"};
-std::vector<EColor> cMRDSubEvent::trackcolours{kBlack, kBlue, (EColor)TColor::GetColorDark(kGreen), kRed, kViolet, kOrange, kMagenta,(EColor)(kAzure+2),(EColor)(kOrange+4),(EColor)(kViolet-6),(EColor)(kTeal-6)};
-
+								// 40 - offset of 1 cell. but doesn't allow multi-digit clusters //140
+								// which increase opening angle to ~70. This doesn't allow large kinks
 								// where deviation from straight projection is 2 cells.
 
 void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawfit){
@@ -71,7 +62,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 	std::vector< std::vector<int> > digits_by_layer( (MRDSpecs::numpanels) );	//nb. inner parenthesis rqd!
 	for(Int_t adigiindex=0; adigiindex<digi_ids.size(); adigiindex++){
 		Int_t tube_id = pmts_hit.at(adigiindex);
-		Int_t strucklayer = mrdcluster::paddle_layers.at(tube_id);
+		Int_t strucklayer = MRDSpecs::paddle_layers.at(tube_id);
 		digits_by_layer.at(strucklayer).push_back(adigiindex);
 	}
 #ifdef TRACKFINDVERBOSE
@@ -135,7 +126,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 			Int_t posid1 = (tube_id%2==1) ? (tube_id-1)/2 : (tube_id/2);
 			Int_t posid2 = (tube_id2%2==1) ? (tube_id2-1)/2 : (tube_id2/2);
 			// if the next digit's tube_id is adjacent to that of this digit
-			if(TMath::Abs(posid1-posid2)<2){
+			if(abs(posid1-posid2)<2){
 				// they're a cluster! grab the digi_ids
 				Int_t adigiindex = digitssortedbytube.at(thisdigit).second;
 				Int_t adigiindex2 = digitssortedbytube.at(thisdigit+1).second;
@@ -176,7 +167,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 	for(Int_t adigiindex=0; adigiindex<digi_ids.size(); adigiindex++){
 		if(std::count(donedigits.begin(), donedigits.end(), adigiindex)==0){
 			Int_t tube_id = pmts_hit.at(adigiindex);
-			Int_t strucklayer = mrdcluster::paddle_layers.at(tube_id);
+			Int_t strucklayer = MRDSpecs::paddle_layers.at(tube_id);
 			mrdcluster* thisdigitscluster = new mrdcluster(adigiindex, tube_id, strucklayer, digi_ts.at(adigiindex));
 			theclusters.push_back(thisdigitscluster);
 		}
@@ -266,7 +257,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 									<<endcluster->GetCentreIndex()<<std::endl;
 #endif
 								// allow larger kinks
-								if(TMath::Abs(projectedendpoint-endcluster->GetCentreIndex())<2){
+								if(abs(projectedendpoint-endcluster->GetCentreIndex())<2){
 									foundintermediate=true;  // same as existing cell
 #ifdef TRACKFINDVERBOSE
 									std::cout<<"this is an intermediate, skipping this endpoint cluster."<<std::endl;
@@ -758,7 +749,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 #ifdef TRACKFINDVERBOSE
 			std::cout<<"net FOM from side comparison in h view is "<<hfom<<"/"<<hcomparisons<<std::endl;
 #endif
-			if(hcomparisons) thisfom+= 2.*((double)hfom/(TMath::Power((double)hcomparisons,0.3)));
+			if(hcomparisons) thisfom+= 2.*((double)hfom/(pow((double)hcomparisons,0.3)));
 #ifdef TRACKFINDVERBOSE
 			std::cout<<"thisfom="<<thisfom<<std::endl;
 #endif
@@ -877,7 +868,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 #ifdef TRACKFINDVERBOSE
 			std::cout<<"net FOM from side comparison in v view is "<<vfom<<"/"<<vcomparisons<<std::endl;
 #endif
-			if(vcomparisons) thisfom+= 2.*((double)vfom/(TMath::Power((double)vcomparisons,0.3)));
+			if(vcomparisons) thisfom+= 2.*((double)vfom/(pow((double)vcomparisons,0.3)));
 #ifdef TRACKFINDVERBOSE
 			std::cout<<"thisfom="<<thisfom<<std::endl;
 #endif
@@ -893,30 +884,30 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 			
 #ifdef TRACKFINDVERBOSE
 			std::cout<<"updating figure-of-merit for endpoint matching by "
-				<<-(((TMath::Abs(hstartlayer-vstartlayer)+1.)/2.)-2.)
+				<<-(((abs(hstartlayer-vstartlayer)+1.)/2.)-2.)
 				<<" for start proximity (layers "<<hstartlayer<<", "<<vstartlayer<<") and "
-				<<-(((TMath::Abs(hstoplayer-vstoplayer)+1.)/2.)-2.)
+				<<-(((abs(hstoplayer-vstoplayer)+1.)/2.)-2.)
 				<<" for end proximity (layers "<<hstoplayer<<", "<<vstoplayer<<")"<<std::endl;
 #endif
 			
 			// adjacent layers in start and end points give FOM+1...
-			thisfom -= ((TMath::Abs(hstartlayer-vstartlayer)+1.)/2.)-2.;
+			thisfom -= ((abs(hstartlayer-vstartlayer)+1.)/2.)-2.;
 #ifdef TRACKFINDVERBOSE
 			std::cout<<"thisfom="<<thisfom<<std::endl;
 #endif
-			thisfom -= ((TMath::Abs(hstoplayer-vstoplayer)+1.)/2.)-2.;
+			thisfom -= ((abs(hstoplayer-vstoplayer)+1.)/2.)-2.;
 #ifdef TRACKFINDVERBOSE
 			std::cout<<"thisfom="<<thisfom<<std::endl;
 #endif 
 			double deltah = htrack.front()->clusters.second->GetCentre()
 							-htrack.back()->clusters.first->GetCentre();
 			double deltaxh = MRDSpecs::mrdscintlayers.at(hstoplayer)-MRDSpecs::mrdscintlayers.at(hstartlayer);
-			double coshang = TMath::Cos(TMath::ATan(deltah/deltaxh));
+			double coshang = cos(atan(deltah/deltaxh));
 			
 			double deltav = vtrack.front()->clusters.second->GetCentre()
 							-vtrack.back()->clusters.first->GetCentre();
 			double deltaxv = MRDSpecs::mrdscintlayers.at(vstoplayer)-MRDSpecs::mrdscintlayers.at(vstartlayer);
-			double cosvang = TMath::Cos(TMath::ATan(deltav/deltaxv));
+			double cosvang = cos(atan(deltav/deltaxv));
 #ifdef TRACKFINDVERBOSE
 			std::cout<<"updating figure-of-merit based on steepness of track angle by "
 				<<coshang<<" for horizontal angle and "<<cosvang<<" for vertical angle"<<std::endl;
@@ -1467,7 +1458,7 @@ void cMRDSubEvent::LeastSquaresMinimizer(Int_t numdatapoints, Double_t datapoint
 #endif
 		// calculate the error on the position from the paddle extents. Since the cluster may span
 		// several paddles, we have to calculate this on a per-cluster basis
-		chi2 += TMath::Power((datapointys[i]-fitpred),2)/errorys[i];
+		chi2 += pow((datapointys[i]-fitpred),2)/errorys[i];
 	}
 	
 	return;

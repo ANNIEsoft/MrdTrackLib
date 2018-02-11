@@ -1,6 +1,13 @@
 /* vim:set noexpandtab tabstop=4 wrap */
 
-#include <MRDTrackClass.hh>
+#include "MRDTrackClass.hh"
+#include "MRDspecs.hh"
+
+#include "TCanvas.h"
+#include "TArrow.h"
+#include "TBox.h"
+
+#include <iostream>
 
 void cMRDTrack::Print2(){					// a more generic print
 

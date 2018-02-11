@@ -11,4 +11,5 @@ libMrdTrack.so :
 
 clean :
 	@rm -f libMakeMrdTrackClasses_cxx.so
+	@rm -f libMakeMrdTrackClasses_cxx.d
 	@rm -f libMakeMrdTrackClasses_cxx_ACLiC_dict_rdict.pcm

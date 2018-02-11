@@ -1,0 +1,136 @@
+## VARIABLES
+## =========
+ROOTCC          = `root-config --cxx`        # returns g++
+ROOTCXXFLAGS    = `root-config --cflags`     # returns some compiler flags and -I ROOT_INC_DIR
+ROOTLIBS        = `root-config --libs`       # returns some common libs (-lCore -lRIO ...) and -L ROOT_LIB_DIR
+ROOTLIBS       += -lMinuit                   # this is missed
+ROOTGLIBS       = `root-config --glibs`      # returns the same as --libs but also includes -lGUI
+ROOTLDFLAGS     = `root-config --ldflags`    # just returns -m64?
+RootInc         = -I `root-config --incdir`
+RootLib         = -L `root-config --libdir`
+
+SOURCEDIR       = ./src
+INCLUDEDIR      = -I ./include               # add -I flag as this gets passed to CPPFLAGS
+BUILDDIR        = ./build
+DEPDIR          = ./deps
+
+CXX             = g++ 
+CXXFLAGS        = -std=c++1y -g -fdiagnostics-color=always -Wall $(INCLUDEDIR)
+CXXFLAGS       += $(ROOTCXXFLAGS)
+
+LDFLAGS         = $(RootLib)                # LDFLAGS is for flags and -L paths
+LDLIBS          = -lCore -lRIO -lHist -lGraf -lGraf3d -lGpad -lTree -lMatrix -lPhysics -lMathCore -lThread -lMultiProc -pthread -lm -ldl -rdynamic      # LDLIBS  is for the libraries
+
+# flags to tell make to generate and save dependency files as a byproduct of compilation, to a temp location
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
+# rename the temp dependency files to real ones only on success, in case something goes wrong
+POSTCOMPILE = @mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d && touch $@
+
+# all variables must be defined before any targets
+
+## SOURCES AND TARGETS
+## ===================
+
+SRC         = $(wildcard $(SOURCEDIR)/*.cxx)
+OBJ         = $(patsubst $(SOURCEDIR)/%,$(BUILDDIR)/%,$(SRC:.cxx=.o))
+DEP         = $(wildcard $(patsubst %,$(DEPDIR)/%.d,$(basename $(SRC))))
+
+EXECUTABLE      = $(BUILDDIR)/headertest
+
+## COMPILATION RULES
+## =================
+
+all: dirs $(EXECUTABLE)
+
+$(BUILDDIR)/%: $(OBJ)
+	@echo "making executable $@"
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
+
+# delete the built-in rule that would normally be run when a prerequisite object is encountered so that
+# we may override it with our rule incorporating automatic dependencies
+$(BUILDDIR)/%.o : $(SOURCEDIR)/%.cxx
+# replacement rules with automatic dependency inclusion
+$(BUILDDIR)/%.o : $(SOURCEDIR)/%.cxx $(DEPDIR)/%.d
+	@echo "making object $@"
+	$(CXX) $(DEPFLAGS) $(CXXFLAGS) $(LDFLAGS) -c $<
+	$(POSTCOMPILE)
+
+# phony targets don't generate an output file, so it won't check for timestamps
+.PHONY: clean dirs info
+
+clean:
+	$(RM) $(EXECUTABLE) $(OBJ)
+
+dirs:
+	# make the directory, including parent directories if necessary (-p flag) 
+	@echo "making dirs"
+	$(shell mkdir -p $(DEPDIR))
+	$(shell mkdir -p $(BUILDDIR))
+
+info: 
+	@echo "sources = $(SRC)"
+	@echo "objects = $(OBJ)"
+
+# an empty recipe for dependency files. If a user deletes a dependency file, this will ensure it gets remade, and make doesn't forge ahead compiling without including all necessary dependencies.
+$(DEPDIR)/%.d: ;
+
+# mark dependency files as 'precious' so they don't get cleaned up as intermediate files by make
+.PRECIOUS: $(DEPDIR)/%.d
+
+# for automatic dependency inclusion, this line must be after the default target
+# at the end of the makefile is a good place.
+include $(DEP)
+
+
+
+
+
+
+
+
+
+
+#= NOTES
+## =====
+# precede a line with @ to suppress it being echoed before executed
+# precede a line with - to suppress errors and continue anyway
+# n.b. you can include other makesfiles. Useful for pulling in rules to some shared targets?
+
+## notes on automatic dependency generation flags:
+## ----------------------------------------------
+# -MT $@
+# Set the name of the target in the generated dependency file.
+
+# -MMD
+# Generate dependency information as a side-effect of compilation. -MMD omits system headers from the generated dependencies: if you prefer to preserve system headers as prerequisites, use -MD.
+
+# -MP
+# Creates an empty rule for generating each dependency. This suppresses the errors that would otherwise occur when a header file is deleted or renamed.
+
+# -MF $(DEPDIR)/$*.Td
+# Write the generated dependency file to a temporary location $(DEPDIR)/$*.Td initially
+
+# POSTCOMPILE = ...
+# Rename the generated temporary dependency file to the real dependency file, in a separate step so that failures during the compilation won’t leave a corrupted dependency file. We then touch the object file; it’s been reported that some versions of GCC may leave the object file older than the dependency file, which causes unnecessary rebuilds.
+
+# %.o : %.c
+# Delete the built-in rules for building object files from .c files, so that our rule is used instead. Do the same for the other built-in rules.
+
+# ... $(DEPDIR)/%.d
+# Declare the generated dependency file as a prerequisite of the target, so that if it’s missing the target will be rebuilt.
+
+# include ...
+# Include the dependency files that exist: translate each file listed in SRCS into its dependency file. Use wildcard to avoid failing on non-existent files.
+# i think this is including the dependency files as separate makefiles - make then re-runs after processing them
+
+## conventional build rules
+## ------------------------
+# maybe these aren't complete...
+# ========================
+#$(EXECUTABLE): $(OBJECTS)
+#	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
+
+## objects are generated by passing the -c flag to g++
+#.cxx.o:
+#	$(CXX) $(CXXFLAGS) -c $< -o $@
+# ========================
