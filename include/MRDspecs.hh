@@ -4,7 +4,7 @@
 
 #include <utility>
 #include <vector>
-#include <array>
+//#include <array>
 
 // first panel is a HORIZONTAL LAYER.
 // TODO store these in the WCSimRootGeom?
@@ -65,7 +65,7 @@ namespace MRDSpecs{
 	extern const double maxheight;
 
 	extern const int nummrdpmts;
-	extern const std::array<int,12> layeroffsets;
+	extern const std::vector<int> layeroffsets;
 
 	extern const float MRD_width;
 	extern const float MRD_height;
@@ -76,7 +76,7 @@ namespace MRDSpecs{
 	extern const float MRD_steel_width;		// half width of steel in cm
 	extern const float MRD_steel_height;		// half height of steel in cm
 
-	extern const std::array<double,11> mrdscintlayers;
+	extern const std::vector<double> mrdscintlayers;
 
 	//TODO: should retrieve this info from the geo in wcsimanalysis class
 	extern const float tank_start;			// front face of the tank in cm

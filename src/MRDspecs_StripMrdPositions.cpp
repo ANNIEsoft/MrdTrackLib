@@ -4,6 +4,7 @@
 #include <regex>
 #include <iostream>
 #include <fstream>
+#include <cstring>
 //#include <iomanip>
 //#include <cstdlib>  // for getenv for standalone call
 

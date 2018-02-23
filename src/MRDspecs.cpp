@@ -63,7 +63,7 @@ namespace MRDSpecs{
 	const double maxheight = *std::max_element(heights,heights+(sizeof(heights)/sizeof(heights[0])))+0.1;
 
 	const int nummrdpmts=306;
-	const std::array<int,12> layeroffsets = {0, 26, 56, 82, 112, 138, 168, 194, 224, 250, 280, 306};
+  const std::vector<int> layeroffsets = {0, 26, 56, 82, 112, 138, 168, 194, 224, 250, 280, 306};
 	// ids of the first pmt in each layer.                                       KEEP an extra ^^^
 
 	const float MRD_width = ((numpaddlesperpanelv/2)*(scintfullxlen+scintbordergap))/2.;
@@ -91,7 +91,7 @@ namespace MRDSpecs{
 	########## MRD scintillator layer 10 (H) at z=457.18 ##########
 	*/
 
-	const std::array<double,11> mrdscintlayers{336.080, 348.190, 360.300, 372.410, 384.520, 396.630, 408.740, 420.850, 432.960, 445.070, 457.180 };
+	const std::vector<double> mrdscintlayers{336.080, 348.190, 360.300, 372.410, 384.520, 396.630, 408.740, 420.850, 432.960, 445.070, 457.180 };
 
 	//TODO: should retrieve this info from the geo in wcsimanalysis class
 	const float tank_start = 15.70;

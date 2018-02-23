@@ -74,13 +74,23 @@ Double_t cMRDTrack::GetHtrackOriginError(){return htrackoriginerror;}
 Double_t cMRDTrack::GetHtrackGradient(){return htrackgradient;}
 Double_t cMRDTrack::GetHtrackGradientError(){return htrackgradienterror;}
 Double_t cMRDTrack::GetHtrackFitChi2(){return htrackfitchi2;}
-std::array<double,2> cMRDTrack::GetHtrackFitCov(){return std::array<double,2>{htrackfitcov(0,0),htrackfitcov(0,1)};}
+std::vector<double> cMRDTrack::GetHtrackFitCov(){
+  std::vector<double> tmp;
+  tmp.push_back(htrackfitcov(0,0));
+  tmp.push_back(htrackfitcov(0,1));
+  return tmp;
+}
 Double_t cMRDTrack::GetVtrackOrigin(){return vtrackorigin;}
 Double_t cMRDTrack::GetVtrackOriginError(){return vtrackoriginerror;}
 Double_t cMRDTrack::GetVtrackGradient(){return vtrackgradient;}
 Double_t cMRDTrack::GetVtrackGradientError(){return vtrackgradienterror;}
 Double_t cMRDTrack::GetVtrackFitChi2(){return vtrackfitchi2;}
-std::array<double,2> cMRDTrack::GetVtrackFitCov(){return std::array<double,2>{vtrackfitcov(0,0),vtrackfitcov(0,1)};}
+std::vector<double> cMRDTrack::GetVtrackFitCov(){
+  std::vector<double> tmp;
+  tmp.push_back(vtrackfitcov(0,0));
+  tmp.push_back(vtrackfitcov(0,1));
+  return tmp;
+}
 
 
 // Truth Level Info

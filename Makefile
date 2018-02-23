@@ -2,8 +2,8 @@ SRC_DIR     = src
 INC_DIR     = include
 
 CC          = g++
-CPPFLAGS    = -I$(INC_DIR) -fPIC
-CXXFLAGS    = -g -Wall -fdiagnostics-color=always -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -MMD -MP
+CPPFLAGS    =  -I$(INC_DIR) -fPIC
+CXXFLAGS    = -g -std=c++11 -Wall -fdiagnostics-color=always -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -MMD -MP `root-config --libs` -L/marc/ToolDAQ/root/lib -lCore -lCint -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -Wl,-rpath,/marc/ToolDAQ/root/lib -lm -ldl -rdynamic -pthread -m64 -I/marc/ToolDAQ/root/include
 CPPFLAGS   += `root-config --cflags`
 LDFLAGS     = `root-config --libs` -lMinuit
 OUTPUT_OPTION = -o $@
@@ -25,6 +25,7 @@ $(EXECUTABLE) : $(OBJ) $(SRC_DIR)/FindMrdTracks_RootDict.o $(SRC_DIR)/$(EXECUTAB
 	g++ $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ $(OUTPUT_OPTION)
  
 $(SRC_DIR)/libFindMrdTracks.so:  $(OBJ) $(SRC_DIR)/FindMrdTracks_RootDict.o
+	echo hello
 	g++ $(CXXFLAGS) $(CPPFLAGS) -shared $(LDFLAGS) $^ $(OUTPUT_OPTION)
 
 clean:
@@ -34,11 +35,12 @@ clean:
 	        $(SRC_DIR)/FindMrdTracks_RootDict_rdict.pcm \
 	        $(INC_DIR)/FindMrdTracks_Linkdef.h \
 	        $(EXECUTABLE) \
-	        $(LIBRARY)
+	        $(LIBRARY) \
+	        $(SRC_DIR)/FindMrdTracks_RootDict.cpp
 
-$(SRC_DIR)/FindMrdTracks_RootDict.c: $(INC_DIR)/FindMrdTracks_Linkdef.h
+$(SRC_DIR)/FindMrdTracks_RootDict.cpp: $(INC_DIR)/FindMrdTracks_Linkdef.h
 	@echo "making $@"
-	rootcint -f $@ $(CPPFLAGS) $(HDR_NAMES) $^
+	rootcint -f $@ -c -p $(CPPFLAGS) $(HDR_NAMES) $^
 
 $(INC_DIR)/FindMrdTracks_Linkdef.h:
 	@echo "making $@"
@@ -49,7 +51,7 @@ $(INC_DIR)/FindMrdTracks_Linkdef.h:
 	done
 	@cat $(INC_DIR)/linkdefpostamble.txt >> $@
 
--include $(SRC:%.cpp=%.d)
+#-include $(SRC:%.cpp=%.d)
 
 ## IMPORTANT NOTES:
 # we do not need to write our own rule for %.o : %.cpp etc, if we use make's implicit rules. 

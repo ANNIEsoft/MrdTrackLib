@@ -14,7 +14,7 @@
 #include "TMatrixDSym.h"
 
 #include <vector>
-#include <array>
+//#include <array>
 
 class TBox;
 class TCanvas;
@@ -77,13 +77,13 @@ class cMRDTrack : public TObject {			// TObject inheritance is required to put i
 	Double_t htrackgradient;
 	Double_t htrackgradienterror;
 	Double_t htrackfitchi2;
-	TMatrixDSym htrackfitcov{2}; // it's necessary to specify the dimensionality when constructing!!!!
+	TMatrixDSym htrackfitcov; // it's necessary to specify the dimensionality when constructing!!!!
 	Double_t vtrackorigin;
 	Double_t vtrackoriginerror;
 	Double_t vtrackgradient;
 	Double_t vtrackgradienterror;
 	Double_t vtrackfitchi2;
-	TMatrixDSym vtrackfitcov{2};
+	TMatrixDSym vtrackfitcov;
 	
 	TVector3 trackfitstart, trackfitstop;
 	double trackangle, trackangleerror;
@@ -157,13 +157,13 @@ class cMRDTrack : public TObject {			// TObject inheritance is required to put i
 	Double_t GetHtrackGradient();
 	Double_t GetHtrackGradientError();
 	Double_t GetHtrackFitChi2();
-	std::array<double,2> GetHtrackFitCov();
+	std::vector<double> GetHtrackFitCov();
 	Double_t GetVtrackOrigin();
 	Double_t GetVtrackOriginError();
 	Double_t GetVtrackGradient();
 	Double_t GetVtrackGradientError();
 	Double_t GetVtrackFitChi2();
-	std::array<double,2> GetVtrackFitCov();
+	std::vector<double> GetVtrackFitCov();
 	
 	
 	// debugging functions
