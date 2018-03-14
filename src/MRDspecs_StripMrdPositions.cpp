@@ -1,18 +1,21 @@
 /* vim:set noexpandtab tabstop=4 wrap */
+//#include "MRDspecs.cpp" // for standalone test only
 #include "MRDspecs.hh"
 #include <string>
-#include <regex>
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <sstream>
+#include <cassert>
 //#include <iomanip>
 //#include <cstdlib>  // for getenv for standalone call
 
-//.x /annie/app/users/moflaher/wcsim/root_work/RegexTest.C+    << standalone call
+//.L thisfile+g; StripMrdPositions()    << standalone call
 
 //// FIXME: RESULTS RETURNED FROM STRIPMRDPOSITIONS ARE IN MM!
 //// EVERYTHING ELSE HERE IS IN CM. THIS IS CONFUSING.
 
+// disable for standalone?
 // declare the output vectors to put things in temporarily
 static std::vector<int> temp_paddle_orientations(MRDSpecs::nummrdpmts);	// H is 0, V is 1
 static std::vector<int> temp_paddle_layers(MRDSpecs::nummrdpmts);
@@ -25,25 +28,12 @@ static std::vector<std::pair<double,double> > temp_paddle_extentsz(MRDSpecs::num
 
 int StripMrdPositions(){
 
-//	temp_paddle_orientations;
-//	temp_paddle_layers.;
-//	temp_paddle_originx;
-//	temp_paddle_originy;
-//	temp_paddle_originz;
-//	temp_paddle_extentsx;
-//	temp_paddle_extentsy;
-//	temp_paddle_extentsz;
-	
-	//char* pwd;
-	//pwd = getenv ("PATH");
-	//std::string rawfilename = std::string(pwd) + "/MRD_positions_raw";
-	
 	// input file reading infrastructure
 	//std::ifstream input_file(fname);
 	/* version that reads from file. Needs MRD_positions_raw to be in the same directory as executed.
 	std::ifstream input_file(rawfilename);
 		if ( input_file.fail() ) {
-		std::cerr << "Failed to open file " << rawfilename << "!" << endl;
+		std::cerr << "Failed to open file " << rawfilename << "!" << std::endl;
 		exit(-1);
 	}
 	char linebuffer[256];
@@ -65,6 +55,7 @@ int StripMrdPositions(){
 	const char* rawpositions = 
 	#include "MRD_positions_raw.dat"
 	;
+	
 	// use strtok to split char array into lines by searching for \n's. has problems?
 //	char *nextline = strtok(rawpositions, "\n");
 //	while(nextline) {                         // while token was found
@@ -82,40 +73,70 @@ int StripMrdPositions(){
 	
 	// lines are of the format:
 	// PMT 277 : Orientation V : Layer 9 : Origin (1216.5,-652.5,503.25) : Extent (1116.5→1316.5, -1388.5→83.5, 4450.7→4456.7)
-	std::string theexpressionstring = "PMT ([0-9]+) : Orientation (.) : Layer ([0-9]+) : Origin \\(([0-9\\.\\+\\-]+),([0-9\\.\\+\\-]+),([0-9\\.\\+\\-]+)\\) : Extent \\(([0-9\\.\\+\\-]+)→([0-9\\.\\+\\-]+), ([0-9\\.\\+\\-]+)→([0-9\\.\\+\\-]+), ([0-9\\.\\+\\-]+)→([0-9\\.\\+\\-]+)\\)";
-//	std::cout<<"pattern to match is "<<theexpressionstring<<endl;
+	std::string theexpressionstring = "PMT %d : Orientation %c : Layer %d : Origin (%lf,%lf,%lf) : Extent (%lf→%lf, %lf→%lf, %lf→%lf)";
+//	std::cout<<"pattern to match is "<<theexpressionstring<<std::endl;
 	
-	// use regex to extract the information
-	std::match_results<std::string::const_iterator> submatches;
-	std::regex theexpression (theexpressionstring);
+//	// enable for standalone tests
+//	std::vector<int> temp_paddle_orientations(MRDSpecs::nummrdpmts);	// H is 0, V is 1
+//	std::vector<int> temp_paddle_layers(MRDSpecs::nummrdpmts);
+//	std::vector<double> temp_paddle_originx(MRDSpecs::nummrdpmts);
+//	std::vector<double> temp_paddle_originy(MRDSpecs::nummrdpmts);
+//	std::vector<double> temp_paddle_originz(MRDSpecs::nummrdpmts);
+//	std::vector<std::pair<double,double> > temp_paddle_extentsx(MRDSpecs::nummrdpmts);
+//	std::vector<std::pair<double,double> > temp_paddle_extentsy(MRDSpecs::nummrdpmts);
+//	std::vector<std::pair<double,double> > temp_paddle_extentsz(MRDSpecs::nummrdpmts);
+	
+	// use sscanf to extract the information
 	int numlayers=0;
 	for(int linenum=0; linenum<filelines.size(); linenum++){
 		std::string stringtomatch = filelines.at(linenum);
-//		std::cout<<"next string is "<<stringtomatch<<endl;
+		//std::cout<<"next string is "<<stringtomatch<<std::endl;
 		if(stringtomatch=="") break;
-		std::regex_match (stringtomatch, submatches, theexpression);
-		if(submatches.size()==0) { 
-			std::cerr<<stringtomatch<<" was not matched"<<std::endl; return 0;
+		
+		int pmt_id=-1;
+		char next_paddle_orientation='?';
+		int next_paddle_layer=-1;
+		double next_paddle_originx=-1;
+		double next_paddle_originy=-1;
+		double next_paddle_originz=-1;
+		double next_paddle_extentsx1=-1, next_paddle_extentsx2=-1;
+		double next_paddle_extentsy1=-1, next_paddle_extentsy2=-1;
+		double next_paddle_extentsz1=-1, next_paddle_extentsz2=-1;
+		
+		//std::cout<<"matching "<<stringtomatch.c_str()<<" with expression "<<theexpressionstring.c_str()<<" to look for 12 parameters"<<std::endl;
+		
+		int nmatched = sscanf(stringtomatch.c_str(), theexpressionstring.c_str(), &pmt_id, &next_paddle_orientation, &next_paddle_layer, &next_paddle_originx, &next_paddle_originy, &next_paddle_originz, &next_paddle_extentsx1, &next_paddle_extentsx2, &next_paddle_extentsy1, &next_paddle_extentsy2, &next_paddle_extentsz1, &next_paddle_extentsz2);
+		
+		//std::cout<<"match found "<<nmatched<<" parameters"<<std::endl;
+		if(nmatched!=12){ // not all values were matched
+			std::cerr<<"Match failure!"<<std::endl;
+			assert("MRDspecs_StripMrdPositions.cpp match failure! Aborting!"&&false);
 		} else {
-//			std::cout << "whole match was "<<(std::string)submatches[0]<<endl;
-//			for(int i=1; i<submatches.size(); i++){
-//				std::string tval = (std::string)submatches[i];
-//				std::cout <<"submatch " <<i<<" is "<<tval<<endl;
-//			}
-			int pmt_id=std::stoi(submatches[1]);
-			//pmt_ids.push_back(pmt_id);	// 1:1 mapping, no need
-			//std::cout<<"setting stats for pmt "<<pmt_id<<endl;
-			std::string orientationstring = submatches[2];
-//			std::cout<<"orientation of pmt "<<linenum<<" is "<<orientationstring.c_str()<<endl;
-//			if(strcmp(orientationstring.c_str(),"H")==0) std::cout<<"it's horizontal"<<endl; else std::cout<<"it's vertical"<<endl;
-			(strcmp(orientationstring.c_str(),"H")==0) ? temp_paddle_orientations.at(pmt_id)=0 : temp_paddle_orientations.at(pmt_id)=1;
-			temp_paddle_layers.at(pmt_id)=(std::stoi(submatches[3]));
-			temp_paddle_originx.at(pmt_id)=(std::stod(submatches[4]));
-			temp_paddle_originy.at(pmt_id)=(std::stod(submatches[5]));
-			temp_paddle_originz.at(pmt_id)=(std::stod(submatches[6]));
-			temp_paddle_extentsx.at(pmt_id)=(std::pair<double, double>(std::stod(submatches[7]),std::stod(submatches[8])));
-			temp_paddle_extentsy.at(pmt_id)=(std::pair<double, double>(std::stod(submatches[9]),std::stod(submatches[10])));
-			temp_paddle_extentsz.at(pmt_id)=(std::pair<double, double>(std::stod(submatches[11]),std::stod(submatches[12])));
+			//std::cout<<"setting stats for pmt "<<pmt_id<<std::endl;
+			std::string orientationstring(&next_paddle_orientation);
+			(strcmp(&next_paddle_orientation,"H")==0) ? temp_paddle_orientations.at(pmt_id)=0 : temp_paddle_orientations.at(pmt_id)=1;
+			temp_paddle_layers.at(pmt_id)=next_paddle_layer;
+			temp_paddle_originx.at(pmt_id)=next_paddle_originx;
+			temp_paddle_originy.at(pmt_id)=next_paddle_originy;
+			temp_paddle_originz.at(pmt_id)=next_paddle_originz;
+			temp_paddle_extentsx.at(pmt_id)=std::pair<double, double>(next_paddle_extentsx1,next_paddle_extentsx2);
+			temp_paddle_extentsy.at(pmt_id)=std::pair<double, double>(next_paddle_extentsy1,next_paddle_extentsy2);
+			temp_paddle_extentsz.at(pmt_id)=std::pair<double, double>(next_paddle_extentsz1,next_paddle_extentsz2);
+			
+//			std::cout<<"matched parameters were: "<<std::endl <<
+//					pmt_id << std::endl <<
+//					next_paddle_orientation << std::endl <<
+//					next_paddle_layer << std::endl <<
+//					next_paddle_originx << std::endl <<
+//					next_paddle_originy << std::endl <<
+//					next_paddle_originz << std::endl <<
+//					next_paddle_extentsx1 << std::endl <<
+//					next_paddle_extentsx2 << std::endl <<
+//					next_paddle_extentsy1 << std::endl <<
+//					next_paddle_extentsy2 << std::endl <<
+//					next_paddle_extentsz1 << std::endl <<
+//					next_paddle_extentsz2 << std::endl <<
+//					std::endl;
 		}
 	}
 	// success should return for each match:
@@ -134,31 +155,35 @@ int StripMrdPositions(){
 	
 //	std::ofstream mrdpositions;
 //	mrdpositions.open("mrdpositions.txt", std::ios::out);
-//	mrdpositions<<"pmtids is "<<pmt_ids<<endl;
-//	mrdpositions<<"orientations is "<<orientations<<endl;
-//	mrdpositions<<"layers is "<<layers<<endl;
-//	mrdpositions<<"originxs is "<<originx<<endl;
-//	mrdpositions<<"originys is "<<originy<<endl;
-//	mrdpositions<<"originzs is "<<originz<<endl;
-//	mrdpositions<<"extentsx is "<<extentsx<<endl;
-//	mrdpositions<<"extentsy is "<<extentsy<<endl;
-//	mrdpositions<<"extentsz is "<<extentsz<<endl;
+//	mrdpositions<<"pmtids is "<<pmt_ids<<std::endl;
+//	mrdpositions<<"orientations is "<<orientations<<std::endl;
+//	mrdpositions<<"layers is "<<layers<<std::endl;
+//	mrdpositions<<"originxs is "<<originx<<std::endl;
+//	mrdpositions<<"originys is "<<originy<<std::endl;
+//	mrdpositions<<"originzs is "<<originz<<std::endl;
+//	mrdpositions<<"extentsx is "<<extentsx<<std::endl;
+//	mrdpositions<<"extentsy is "<<extentsy<<std::endl;
+//	mrdpositions<<"extentsz is "<<extentsz<<std::endl;
 //	mrdpositions.close();
 	
 //	for(int i=0; i<temp_paddle_orientations.size(); i++){
-//		std::cout<<"orientations is "<<temp_paddle_orientations.at(i)<<endl;
-//		std::cout<<"layers is "<<temp_paddle_layers.at(i)<<endl;
-//		std::cout<<"originxs is "<<temp_paddle_originx.at(i)<<endl;
-//		std::cout<<"originys is "<<temp_paddle_originy.at(i)<<endl;
-//		std::cout<<"originzs is "<<temp_paddle_originz.at(i)<<endl;
-//		std::cout<<"extentsx is "<<temp_paddle_extentsx.at(i).first<<", "<<temp_paddle_extentsx.at(i).second<<endl;
-//		std::cout<<"extentsy is "<<temp_paddle_extentsy.at(i).first<<", "<<temp_paddle_extentsy.at(i).second<<endl;
-//		std::cout<<"extentsz is "<<temp_paddle_extentsz.at(i).first<<", "<<temp_paddle_extentsz.at(i).second<<endl;
+//		std::cout<<"orientations is "<<temp_paddle_orientations.at(i)<<std::endl;
+//		std::cout<<"layers is "<<temp_paddle_layers.at(i)<<std::endl;
+//		std::cout<<"originxs is "<<temp_paddle_originx.at(i)<<std::endl;
+//		std::cout<<"originys is "<<temp_paddle_originy.at(i)<<std::endl;
+//		std::cout<<"originzs is "<<temp_paddle_originz.at(i)<<std::endl;
+//		std::cout<<"extentsx is "<<temp_paddle_extentsx.at(i).first<<", "<<temp_paddle_extentsx.at(i).second<<std::endl;
+//		std::cout<<"extentsy is "<<temp_paddle_extentsy.at(i).first<<", "<<temp_paddle_extentsy.at(i).second<<std::endl;
+//		std::cout<<"extentsz is "<<temp_paddle_extentsz.at(i).first<<", "<<temp_paddle_extentsz.at(i).second<<std::endl;
 //	}
+	
+	//assert("done with MRDspectest, exiting"&&false);
 	
 	return 1;
 }
 
+// disable remainder for standalone tests
+// ----------------------
 // call the function to set the temporary variables.
 int nothing = StripMrdPositions();
 
