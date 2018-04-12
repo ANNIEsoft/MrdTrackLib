@@ -98,6 +98,10 @@ namespace MRDSpecs{
 	const float tank_radius = 152.4;
 	const float tank_halfheight = 198.;
 	const float tank_yoffset = -14.46;
+	
+	const float fidcutradius=12.56;             // 80% of full tank radius
+	const float fidcuty=50.;                    // a meter total fiducial volume in the centre y
+	const float fidcutz=0;                      // fidcuial volume is before the tank centre.
 
 	//totMRD_box = new G4Box("totMRD",(maxwidth/2),(maxheight/2),mrdZlen/2);
 

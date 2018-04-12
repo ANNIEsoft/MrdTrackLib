@@ -84,6 +84,10 @@ namespace MRDSpecs{
 	extern const float tank_halfheight;		// tank half height in cm
 	extern const float tank_yoffset;		// tank y offset in cm
 
+	const float fidcutradius=12.56;			// radius of fid vol in cm
+	const float fidcuty=50.;				// y extent of fid vol in cm - centered on tank origin
+	const float fidcutz=0;					// z cut of fid vol - require intx in upstream half
+
 	// information about the paddles so they can be looked up from the tube ID
 	extern const std::vector<int> &paddle_orientations;		// H is 0, V is 1
 	extern const std::vector<int> &paddle_layers;

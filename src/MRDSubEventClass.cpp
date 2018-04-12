@@ -12,6 +12,7 @@
 #include "TColor.h"
 
 #include <vector>
+#include <iostream>
 
 #ifndef _MRDSubEvent_VERBOSE_
 //#define _MRDSubEvent_VERBOSE_
@@ -63,7 +64,7 @@ cMRDSubEvent::cMRDSubEvent() : mrdsubevent_id(-1), wcsimfile(""), run_id(-1), ev
 // ==========
 cMRDSubEvent::~cMRDSubEvent(){
 #ifdef _MRDSubEvent_VERBOSE_
-	cout<<"cMRDSubEvent destructor"<<endl;
+	std::cout<<"cMRDSubEvent destructor"<<std::endl;
 #endif
 	RemoveArrows();
 }
@@ -87,7 +88,7 @@ layers_hit(), tracksthissubevent(), trackarrows(), truetrackarrows(), trackfitar
 	for(auto&& atrack : truetrackpdgsin) truetrackpdgs.push_back(atrack);
 	
 #ifdef _MRDSubEvent_VERBOSE_
-	cout<<endl<<"constructing a subevent with "<<digi_ids.size()<<" digits"<<endl;
+	std::cout<<std::endl<<"constructing a subevent with "<<digi_ids.size()<<" digits"<<std::endl;
 #endif
 	if(fillstaticmembers) FillStaticMembers();
 	
@@ -101,9 +102,9 @@ layers_hit(), tracksthissubevent(), trackarrows(), truetrackarrows(), trackfitar
 	if(drawtruetracks) DrawTrueTracks();   // draws true tracks over the event
 	DoReconstruction(printtracks, drawcells, drawfit); // adds the tracks to the canvas
 	if(saveimage) imgcanvas->SaveAs(TString::Format("mrdtracks_%d.png",event_id));
-	//cout<<"sleeping for 5 seconds to analyse output"<<endl;
+	//std::cout<<"sleeping for 5 seconds to analyse output"<<std::endl;
 	//if(tracksthissubevent.size()) std::this_thread::sleep_for (std::chrono::seconds(15));
-	//cout<<"moving to next event"<<endl;
+	//std::cout<<"moving to next event"<<std::endl;
 	//gPad->WaitPrimitive();
 	RemoveArrows();		// removes true and reco track arrows so the canvas can be re-used
 	//assert(false);
@@ -130,7 +131,7 @@ void cMRDSubEvent::RemoveArrows(){	// sometimes need to clear the arrows even be
 // ================
 void cMRDSubEvent::Clear(){
 #ifdef _MRDSubEvent_VERBOSE_
-	cout<<"calling clear on cMRDSubEvent "<<mrdsubevent_id<<endl;
+	std::cout<<"calling clear on cMRDSubEvent "<<mrdsubevent_id<<std::endl;
 #endif
 	mrdsubevent_id=-1;
 	wcsimfile="";

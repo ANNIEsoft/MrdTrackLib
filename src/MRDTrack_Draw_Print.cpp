@@ -9,13 +9,17 @@
 
 #include <iostream>
 
-void cMRDTrack::Print2(){					// a more generic print
+void cMRDTrack::Print2(bool eventinfo=true){					// a more generic print
 
-std::cout<<"NEXT MRD TRACK"<<std::endl
-	<<"wcsimfile: "<<wcsimfile<<std::endl
+std::cout<<"NEXT MRD TRACK"<<std::endl;
+if(eventinfo){
+	std::cout<<"wcsimfile: "<<wcsimfile<<std::endl
 	<<"run: "<<run_id<<", event: "<<event_id<<", trigger: "<<trigger<<", mrdsubevent: "<<mrdsubevent_id
-	<<", track: "<<MRDtrackID<<std::endl
-	<<"num digits: "<<digi_ids.size()<<std::endl
+	<<", MRD track: "<<MRDtrackID<<std::endl;
+} else {
+	std::cout<<"MRD track: "<<MRDtrackID<<std::endl;
+}
+std::cout<<"num digits: "<<digi_ids.size()<<std::endl
 	<<"num pmts hit: "<<pmts_hit.size()<<std::endl
 	<<"digit times: ";
 	for(auto atime : digi_ts) std::cout<<atime<<", ";
