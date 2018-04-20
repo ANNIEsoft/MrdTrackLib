@@ -34,11 +34,11 @@ namespace MRDSpecs{
 	extern const double scinttapfullheight;		// z length of tapering part of scint paddles.
 
 	extern const double scintlgfullwidth;		// tapered light guides at narrow end
-	extern const double scintlgfullheight; 
+	extern const double scintlgfullheight;
 
 	extern const double alufullxlen;
 	extern const double alufullylen;
-	extern const double alufullzlen;		// TODO: check this with measurement
+	extern const double alufullzlen;			// TODO: check this with measurement
 	extern const double alufullxthickness;		// TODO: check this with measurement
 	extern const double alufullythickness;		// TODO:  " "
 	extern const double windowwidth;
@@ -72,9 +72,9 @@ namespace MRDSpecs{
 	extern const float MRD_layer2;			// position in wcsim coords of second scint layer in cm
 	extern const float MRD_start;			// position in wcsim coord of MRD front face in cm
 	extern const float MRD_depth;			// total depth of the MRD in cm
-	extern const float MRD_end;			// end of the MRD in cm
+	extern const float MRD_end;				// end of the MRD in cm
 	extern const float MRD_steel_width;		// half width of steel in cm
-	extern const float MRD_steel_height;		// half height of steel in cm
+	extern const float MRD_steel_height;	// half height of steel in cm
 
 	extern const std::vector<double> mrdscintlayers;
 
@@ -84,9 +84,9 @@ namespace MRDSpecs{
 	extern const float tank_halfheight;		// tank half height in cm
 	extern const float tank_yoffset;		// tank y offset in cm
 
-	const float fidcutradius=12.56;			// radius of fid vol in cm
-	const float fidcuty=50.;				// y extent of fid vol in cm - centered on tank origin
-	const float fidcutz=0;					// z cut of fid vol - require intx in upstream half
+	extern const float fidcutradius;		// radius of fid vol in cm
+	extern const float fidcuty;				// y extent of fid vol in cm - centered on tank origin
+	extern const float fidcutz;				// z cut of fid vol - require intx in upstream half
 
 	// information about the paddles so they can be looked up from the tube ID
 	extern const std::vector<int> &paddle_orientations;		// H is 0, V is 1
@@ -100,4 +100,4 @@ namespace MRDSpecs{
 
 }
 
-#endif 
+#endif

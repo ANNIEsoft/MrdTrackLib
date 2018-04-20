@@ -63,7 +63,7 @@ namespace MRDSpecs{
 	const double maxheight = *std::max_element(heights,heights+(sizeof(heights)/sizeof(heights[0])))+0.1;
 
 	const int nummrdpmts=306;
-  const std::vector<int> layeroffsets = {0, 26, 56, 82, 112, 138, 168, 194, 224, 250, 280, 306};
+	const std::vector<int> layeroffsets = {0, 26, 56, 82, 112, 138, 168, 194, 224, 250, 280, 306};
 	// ids of the first pmt in each layer.                                       KEEP an extra ^^^
 
 	const float MRD_width = ((numpaddlesperpanelv/2)*(scintfullxlen+scintbordergap))/2.;
@@ -98,7 +98,7 @@ namespace MRDSpecs{
 	const float tank_radius = 152.4;
 	const float tank_halfheight = 198.;
 	const float tank_yoffset = -14.46;
-	
+
 	const float fidcutradius=12.56;             // 80% of full tank radius
 	const float fidcuty=50.;                    // a meter total fiducial volume in the centre y
 	const float fidcutz=0;                      // fidcuial volume is before the tank centre.
