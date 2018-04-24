@@ -16,7 +16,7 @@ HDR_NAMES   = $(patsubst $(INC_DIR)/%,%,$(HDR))
 EXECUTABLE=headertest
 LIBRARY=$(SRC_DIR)/libFindMrdTracks.so
 
-all: $(LIBRARY)
+all: clean $(LIBRARY)
 
 .PHONY: clean all
 
