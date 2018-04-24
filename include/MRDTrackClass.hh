@@ -77,13 +77,13 @@ class cMRDTrack : public TObject {			// TObject inheritance is required to put i
 	Double_t htrackgradient;
 	Double_t htrackgradienterror;
 	Double_t htrackfitchi2;
-	TMatrixDSym htrackfitcov{2}; // it's necessary to specify the dimensionality when constructing!!!!
+	TMatrixDSym htrackfitcov; // it's necessary to specify the dimensionality when constructing!!!!
 	Double_t vtrackorigin;
 	Double_t vtrackoriginerror;
 	Double_t vtrackgradient;
 	Double_t vtrackgradienterror;
 	Double_t vtrackfitchi2;
-	TMatrixDSym vtrackfitcov{2};
+	TMatrixDSym vtrackfitcov;
 	
 	TVector3 trackfitstart, trackfitstop;
 	double trackangle, trackangleerror;
