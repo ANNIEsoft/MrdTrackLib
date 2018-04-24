@@ -228,6 +228,7 @@ void cMRDTrack::DoTGraphErrorsFit(){
 	//std::cout << type_name<decltype(returnedcovmatrix)>() << std::endl;
 	std::cout<<"htrackfitcov has "<<htrackfitcov.GetNrows()<<" rows and "<<htrackfitcov.GetNcols()<<" columns"<<std::endl;
 #endif
+	htrackfitcov.ResizeTo(2,2);
 	htrackfitcov = htrackfitresult->GetCovarianceMatrix();
 	
 	//c1.SaveAs(TString::Format("htrackfit_%d.png",MRDtrackID));
@@ -249,6 +250,7 @@ void cMRDTrack::DoTGraphErrorsFit(){
 	vtrackgradient = vtrackfitresult->Value(1);
 	vtrackgradienterror = vtrackfitresult->ParError(1);
 	vtrackfitchi2 = vtrackfitresult->Chi2();
+	vtrackfitcov.ResizeTo(2,2);
 	vtrackfitcov = vtrackfitresult->GetCovarianceMatrix();
 #ifdef MRDTrack_RECO_VERBOSE
 	std::cout<<"vtrackfitchi2="<<vtrackfitchi2<<std::endl;
