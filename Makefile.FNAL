@@ -3,7 +3,7 @@ INC_DIR     = include
 
 CC          = g++
 CPPFLAGS    =  -I$(INC_DIR) -fPIC
-CXXFLAGS    = -g -std=c++11 -Wall -fdiagnostics-color=always -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -MMD -MP `root-config --libs` -L/marc/ToolDAQ/root/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -Wl,-rpath,/marc/ToolDAQ/root/lib -lm -ldl -rdynamic -pthread -m64 -I/marc/ToolDAQ/root/include
+CXXFLAGS    = -g -std=c++11 -Wall -fdiagnostics-color=always -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -MMD -MP `root-config --libs` -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl -rdynamic -pthread -m64
 CPPFLAGS   += `root-config --cflags`
 LDFLAGS     = `root-config --libs` -lMinuit
 OUTPUT_OPTION = -o $@

@@ -59,8 +59,8 @@ namespace MRDSpecs{
 	extern const double MRDPMTExposeHeight;
 	extern const double MRDPMTRadius;
 	extern const double mrdpmtfullheight;
-	extern const double  widths[];
-	extern const double  heights[];
+	extern const double widths[];
+	extern const double heights[];
 	extern const double maxwidth;
 	extern const double maxheight;
 
