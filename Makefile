@@ -3,7 +3,7 @@ INC_DIR     = include
 
 CC          = g++
 CPPFLAGS    =  -I$(INC_DIR) -fPIC
-CXXFLAGS    = -g -std=c++11 -Wall -fdiagnostics-color=always -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -MMD -MP `root-config --libs` -L/marc/ToolDAQ/root/lib -lCore -lCint -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -Wl,-rpath,/marc/ToolDAQ/root/lib -lm -ldl -rdynamic -pthread -m64 -I/marc/ToolDAQ/root/include
+CXXFLAGS    = -g -std=c++11 -Wall -fdiagnostics-color=always -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -MMD -MP `root-config --libs` -lCore -lCint -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl -rdynamic -pthread -m64
 CPPFLAGS   += `root-config --cflags`
 LDFLAGS     = `root-config --libs` -lMinuit
 OUTPUT_OPTION = -o $@
@@ -16,7 +16,7 @@ HDR_NAMES   = $(patsubst $(INC_DIR)/%,%,$(HDR))
 EXECUTABLE=headertest
 LIBRARY=$(SRC_DIR)/libFindMrdTracks.so
 
-all: clean $(LIBRARY)
+all: $(LIBRARY)
 
 .PHONY: clean all
 
@@ -25,7 +25,6 @@ $(EXECUTABLE) : $(OBJ) $(SRC_DIR)/FindMrdTracks_RootDict.o $(SRC_DIR)/$(EXECUTAB
 	g++ $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ $(OUTPUT_OPTION)
  
 $(SRC_DIR)/libFindMrdTracks.so:  $(OBJ) $(SRC_DIR)/FindMrdTracks_RootDict.o
-	echo hello
 	g++ $(CXXFLAGS) $(CPPFLAGS) -shared $(LDFLAGS) $^ $(OUTPUT_OPTION)
 
 clean:
