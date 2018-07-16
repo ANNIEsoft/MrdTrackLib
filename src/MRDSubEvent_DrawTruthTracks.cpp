@@ -30,13 +30,12 @@ void cMRDSubEvent::DrawTrueTracks(){
 #endif
 	
 #ifdef DRAWTRUEVERBOSE
-	std::cout<<"Adding lines for "<<truetracks.size()<<" true tracks"<<std::endl;
+	std::cout<<"Adding lines for "<<truetrackvertices.size()<<" true tracks"<<std::endl;
 #endif
 	
 	int trackit=0;
 	std::vector<int> placeholder(2,0);
 	for(auto&& nextrack : truetrackvertices){ //truetracks, placeholderx
-		
 //		// TODO maybe we should colour the track by time?
 //		Double_t thetime = digi_ts.at(theindex);
 //		Double_t relatime = (thetime-std::mintime)/(maxtime-std::mintime);
@@ -78,10 +77,10 @@ void cMRDSubEvent::DrawTrueTracks(){
 #endif
 			continue;
 		}  // the track never makes it to the MRD
-		if(primarystopvertex.Z()>(MRDSpecs::MRD_start+MRDSpecs::MRD_depth)){
+		if(primarystartvertex.Z()>(MRDSpecs::MRD_start+MRDSpecs::MRD_depth)){
 #ifdef DRAWTRUEVERBOSE
 			std::cout<<"skipping track "<<trackit<<" as it starts after mrd: trackstartz="
-				<<primarystopvertex.Z()<<", MRDSpecs::MRD_start+MRDSpecs::MRD_depth="<<MRDSpecs::MRD_start+MRDSpecs::MRD_depth<<std::endl;
+				<<primarystartvertex.Z()<<", MRDSpecs::MRD_start+MRDSpecs::MRD_depth="<<MRDSpecs::MRD_start+MRDSpecs::MRD_depth<<std::endl;
 #endif
 			continue;
 		} // the track is somehow created after the MRD
@@ -481,8 +480,8 @@ bool CheckLineBox( TVector3 L1, TVector3 L2, TVector3 B1, TVector3 B2, TVector3 
 	GetIntersection( L1.Z()-B2.Z(), L2.Z()-B2.Z(), L1, L2, Hit) && InBox( Hit, B1, B2, 3 );
 	if(thisinterception){ interceptions.push_back(Hit); anyinterception=true; }
 
-	if((interceptions.size()>2)||(startsinmrd&&interceptions.size()==2)){
-		std::cerr<<"CheckLineBox found more than two intercepts?! Or 2 intercepts but starts in MRD?? Intercepts at:"<<std::endl;
+	if((interceptions.size()>2)||((startsinmrd||stopsinmrd)&&interceptions.size()==2)){
+		std::cerr<<"CheckLineBox found more than two intercepts?! Or 2 intercepts but starts/stops in MRD?? Intercepts at:"<<std::endl;
 		for(auto&& avec : interceptions)
 			std::cerr<<"("<<avec.X()<<", "<<avec.Y()<<", "<<avec.Z()<<")"<<std::endl;
 		error=true;
@@ -491,7 +490,7 @@ bool CheckLineBox( TVector3 L1, TVector3 L2, TVector3 B1, TVector3 B2, TVector3 
 	} else if(interceptions.size()==2){
 		auto vec1 = interceptions.at(0);
 		auto vec2 = interceptions.at(1);
-		if(vec1.Z()<vec2.Z()){
+		if(vec1.Z()<vec2.Z()){  // bear in mind this swaps direction of track!
 			Hit=vec1;
 			Hit2=vec2;
 		} else {
@@ -505,7 +504,7 @@ bool CheckLineBox( TVector3 L1, TVector3 L2, TVector3 B1, TVector3 B2, TVector3 
 			Hit2=L2; // Hit2 is 'mrd exit' point - return track end. 
 		} else if (startsinmrd){
 			Hit = L1;
-			Hit=interceptions.at(0);
+			Hit2=interceptions.at(0);
 		} else {
 			std::cerr<<"only one intercept found, but track neither starts nor stops in mrd??"<<std::endl;
 			error=true;
