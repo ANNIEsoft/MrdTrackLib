@@ -93,9 +93,9 @@ layers_hit(), tracksthissubevent(), trackarrows(), truetrackarrows(), trackfitar
 	if(fillstaticmembers) FillStaticMembers();
 	
 	Bool_t printtracks=false;
-	Bool_t drawcells=false;
-	Bool_t drawfit=false;
-	Bool_t drawtruetracks=false;
+	Bool_t drawcells=true;
+	Bool_t drawfit=true;
+	Bool_t drawtruetracks=true;
 	Bool_t saveimage=false;
 	
 	if(drawcells||drawfit||drawtruetracks) DrawMrdCanvases();  // creates the canvas with the digits

@@ -13,6 +13,9 @@
 
 #ifndef DRAWVERBOSE
 //#define DRAWVERBOSE
+//#include <iostream>
+//using std::cout;
+//using std::endl;
 #endif
 
 #ifndef DRAWSUPERVERBOSE
