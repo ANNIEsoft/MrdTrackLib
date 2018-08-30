@@ -390,6 +390,7 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 	// OK done.
 	// now loop over the pairs and make the arrows
 	// top view
+	imgcanvas->cd(2);  // top view for x positions
 	for(int i=0; i < zstartsx.size(); i++){
 		// Draw arrow representing "true" (assumed straight) trajectory in top view
 		std::string arrowdir = (!trackisbackwardgoing) ? ">" : "<";
@@ -398,7 +399,6 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 		myarrow->SetLineWidth(2);
 		myarrow->SetLineColor(thistrackscolour);
 		myarrow->SetLineStyle(2);  //dashed
-		imgcanvas->cd(2);  // top view for x positions
 		myarrow->Draw();
 #ifdef MRDTrack_RECO_VERBOSE
 		std::cout<<"drawing top view fit track arrow from "<<myarrow->GetX1()<<", "<<myarrow->GetY1()
@@ -425,6 +425,7 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 	
 	// need to do top and side views separately as they may have different sizes
 	// side view
+	imgcanvas->cd(1);  // side view for y positions
 	for(int i=0; i < zstartsy.size(); i++){
 		// Draw arrow representing "true" (assumed straight) trajectory in top view
 		std::string arrowdir = (!trackisbackwardgoing) ? ">" : "<";
@@ -433,7 +434,6 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 		myarrow->SetLineWidth(2);
 		myarrow->SetLineColor(thistrackscolour);
 		myarrow->SetLineStyle(2);  //dashed
-		imgcanvas->cd(1);  // side view for y positions
 		myarrow->Draw();
 #ifdef MRDTrack_RECO_VERBOSE
 		std::cout<<"drawing side view fit track arrow from "<<myarrow->GetX1()<<", "

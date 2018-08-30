@@ -31,3 +31,18 @@ void cMRDSubEvent::Print(){                     // a generic print
 //	for(auto aqdeposit : eDepsInLayers) std::cout<<aqdeposit<<", ";
 //	std::cout<<std::endl;
 }
+
+
+void cMRDSubEvent::DrawTracks(){
+	CleanupCanvas();
+	for(auto thetrack : tracksthissubevent){
+		// draw the track
+		int trackcolourindex=thetrack.MRDtrackID+1; // element 0 is black
+		while(trackcolourindex+1>=cMRDSubEvent::trackcolours.size()) 
+			trackcolourindex-=cMRDSubEvent::trackcolours.size();
+		EColor thistrackscolour = cMRDSubEvent::trackcolours.at(trackcolourindex);
+		EColor fittrackscolour = cMRDSubEvent::trackcolours.at(trackcolourindex+1);
+		thetrack.DrawReco(imgcanvas, trackarrows, thistrackscolour, paddlepointers);
+		thetrack.DrawFit(imgcanvas, trackfitarrows, fittrackscolour);
+	}
+}

@@ -134,6 +134,7 @@ class cMRDSubEvent : public TObject {		// TObject inheritance is required to put
 	static std::vector<EColor> trackcolours;
 	
 	void RemoveArrows();
+	void CleanupCanvas();
 	
 	// Required by ROOT
 	// ================

@@ -93,10 +93,13 @@ layers_hit(), tracksthissubevent(), trackarrows(), truetrackarrows(), trackfitar
 	if(fillstaticmembers) FillStaticMembers();
 	
 	Bool_t printtracks=false;
-	Bool_t drawcells=true;
-	Bool_t drawfit=true;
-	Bool_t drawtruetracks=true;
+	Bool_t drawcells=false;
+	Bool_t drawfit=false;
+	Bool_t drawtruetracks=false;
 	Bool_t saveimage=false;
+	
+	// Clean up the Canvas before we draw this subevent
+	CleanupCanvas();
 	
 	if(drawcells||drawfit||drawtruetracks) DrawMrdCanvases();  // creates the canvas with the digits
 	if(drawtruetracks) DrawTrueTracks();   // draws true tracks over the event
@@ -106,8 +109,28 @@ layers_hit(), tracksthissubevent(), trackarrows(), truetrackarrows(), trackfitar
 	//if(tracksthissubevent.size()) std::this_thread::sleep_for (std::chrono::seconds(15));
 	//std::cout<<"moving to next event"<<std::endl;
 	//gPad->WaitPrimitive();
-	RemoveArrows();		// removes true and reco track arrows so the canvas can be re-used
 	//assert(false);
+}
+
+void cMRDSubEvent::CleanupCanvas(){  // clean any existing arrows from the imgcanvas, but don't delete them
+	if(imgcanvas){
+#ifdef _MRDSubEvent_VERBOSE_
+		cout<<"Cleaning TArrows from imgcanvas"<<endl;
+#endif
+		for(int subpad=1; subpad<3; subpad++){ // loop over top and side views
+			TList* imgcanvasprimaries = imgcanvas->GetPad(subpad)->GetListOfPrimitives();
+			TIter primaryiterator(imgcanvasprimaries);
+			while(TObject* aprimary = primaryiterator()){
+				TString primarytype = aprimary->ClassName();
+#ifdef _MRDSubEvent_VERBOSE_
+				cout<<"next prim is a "<<primarytype<<endl;
+#endif
+				if(primarytype=="TArrow"){
+					imgcanvasprimaries->Remove(aprimary);
+				}
+			}
+		}
+	}
 }
 
 void cMRDSubEvent::RemoveArrows(){	// sometimes need to clear the arrows even before deleting the subevent.

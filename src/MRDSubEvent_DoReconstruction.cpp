@@ -1349,19 +1349,6 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 #endif
 }
 
-void cMRDSubEvent::DrawTracks(){
-	for(auto thetrack : tracksthissubevent){
-		// draw the track
-		int trackcolourindex=thetrack.MRDtrackID+1; // element 0 is black
-		while(trackcolourindex+1>=cMRDSubEvent::trackcolours.size()) 
-			trackcolourindex-=cMRDSubEvent::trackcolours.size();
-		EColor thistrackscolour = cMRDSubEvent::trackcolours.at(trackcolourindex);
-		EColor fittrackscolour = cMRDSubEvent::trackcolours.at(trackcolourindex+1);
-		thetrack.DrawReco(imgcanvas, trackarrows, thistrackscolour, paddlepointers);
-		thetrack.DrawFit(imgcanvas, trackfitarrows, fittrackscolour);
-	}
-}
-
 void cMRDSubEvent::LeastSquaresMinimizer(Int_t numdatapoints, Double_t datapointxs[], Double_t datapointys[], Double_t datapointweights[], Double_t errorys[], Double_t &fit_gradient, Double_t &fit_offset, Double_t &chi2){
 	// linear least squares finder from $ROOTSYS/tutorials/matrix/solveLinear.C
 	const Int_t nrVar  = 2;				// number of...? fit variables? 2 because a linear fit?

@@ -73,6 +73,10 @@ void cMRDTrack::DoReconstruction(){
 	
 	trackfitstart = TVector3(trackfitstartx,trackfitstarty,trackfitstartz);
 	trackfitstop = TVector3(trackfitstopx,trackfitstopy,trackfitstopz);
+#ifdef MRDTrack_RECO_VERBOSE
+	std::cout<<"reconstructed track goes from ("<<trackfitstartx<<", "<<trackfitstarty<<", "<<trackfitstartz
+		<<") to ("<<trackfitstopx<<", "<<trackfitstopy<<", "<<trackfitstopz<<")"<<std::endl;
+#endif
 	
 	CheckIfStopping();
 	if((isstopped&&ispenetrating)||(isstopped&&sideexit)||(ispenetrating&&sideexit)){
