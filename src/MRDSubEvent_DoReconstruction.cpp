@@ -243,21 +243,27 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 								}
 								// existing cell is in the intermediate layer - 
 								// does the projection to nextlayer hit this cluster?
-								double startclustercentre = startcluster->GetCentreIndex();
+								// index based check is not sufficient with paddles with nonuniform width
+//								double startclustercentre = startcluster->GetCentreIndex();
+								double startclustercentre = startcluster->GetCentre();
 								mrdcluster* secondcluster = acell->clusters.second;
-								double midclustercentre = secondcluster->GetCentreIndex();
+								//double midclustercentre = secondcluster->GetCentreIndex();
+								double midclustercentre = secondcluster->GetCentre();
 								int xdiff = midclustercentre-startclustercentre;
 								double projectedendpoint = startclustercentre+(2*xdiff);
 #ifdef TRACKFINDVERBOSE
-								std::cout<<"projection of cell from tube "<<startclustercentre
-									<<" in layer "<<thislayer<<" to tube "<<midclustercentre
-									<<" in layer "<<acell->clusters.second->layer
-									<<" forward to layer "<<nextlayer<<" gives tube "
+								std::cout<<"projection of cell from tube "<<startcluster->GetCentreIndex()
+									<<" in layer "<<thislayer<<" at "<<startclustercentre
+									<<" to tube "<<secondcluster->GetCentreIndex()
+									<<" in layer "<<acell->clusters.second->layer<<" at "<<midclustercentre
+									<<" forward to layer "<<nextlayer<<" gives tube at "
 									<<projectedendpoint<<", compared to present cluster's centre of "
-									<<endcluster->GetCentreIndex()<<std::endl;
+									//<<endcluster->GetCentreIndex()<<std::endl;
+									<<endcluster->GetCentre()<<std::endl;
 #endif
 								// allow larger kinks
-								if(abs(projectedendpoint-endcluster->GetCentreIndex())<2){
+								//if(abs(projectedendpoint-endcluster->GetCentreIndex())<2){
+								if(abs((projectedendpoint-endcluster->GetCentre())/(MRDSpecs::scintfullxlen*10.))<2){
 									foundintermediate=true;  // same as existing cell
 #ifdef TRACKFINDVERBOSE
 									std::cout<<"this is an intermediate, skipping this endpoint cluster."<<std::endl;
@@ -267,7 +273,12 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 							}
 							if(!foundintermediate){
 #ifdef TRACKFINDVERBOSE
-								std::cout<<"no intermediate cells found, creating a new cell"<<std::endl;
+								std::cout<<"no intermediate cells found, "
+										<<"generating a cell between cluster "<<thiscluster
+										<<" with centre "<<startcluster->GetCentreIndex()
+										<<" in layer "<<thislayer<<" and cluster "<<thiscluster2
+										<<" with centre "<<endcluster->GetCentreIndex()
+										<<" in layer "<<nextlayer<<std::endl;
 #endif
 								// no existing cell that overlaps with this one; make the cell
 								mrdcell* thiscell = new mrdcell(startcluster, endcluster);
@@ -413,6 +424,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 							// this cell does not have a downstream cell yet. If the downstream cell has no
 							// existing upstream cell, use this one. If the downstream cell already has an
 							// upstream neighbour defined (converging upstream tracks), use the better fit
+#ifdef TRACKFINDVERBOSE
 							if(downcell->utneighbourcellindex!=-1){
 							std::cout<<"existing candidate chi2="<<downcell->neighbourchi2<<std::endl;
 							std::cout<<"existing candidate upstream layer="
@@ -420,6 +432,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 							std::cout<<"new candidate chi2="<<chi2<<std::endl
 								<<"new candidate upstream layer="<<upcell->clusters.first->layer<<std::endl;
 							}
+#endif
 							if( (downcell->utneighbourcellindex==-1) || 
 								(downcell->utneighbourcellindex!=-1 && chi2<downcell->neighbourchi2) ||
 								(downcell->utneighbourcellindex	!=-1 && chi2<(downcell->neighbourchi2*3.) &&
@@ -765,12 +778,14 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 				
 				// and what side are they on?
 				int startpmt = vtrack.at(testi)->clusters.first->GetCentreIndex();
-				startpmt-= ((MRDSpecs::numpaddlesperpanelv/2.)-1.)/2.;  // -7 -> centre paddle will be 0.
+				// # paddles per panel is variable; use correct layer count.
+				// e.g. for 15 paddles gives -7 -> centre paddle will be 0
+				startpmt-= ((MRDSpecs::numpaddlesperpanelvv.at(startlayer/2)/2.)-1.)/2.;
 				double vsidestart=0;  // 0 indicates a centre paddle - neither side.
 					 if(startpmt>0) vsidestart= 1;            // right hand side
 				else if(startpmt<0) vsidestart=-1;            // left hand side
 				double stoppmt = vtrack.at(testi)->clusters.second->GetCentreIndex();
-				stoppmt-= ((MRDSpecs::numpaddlesperpanelv/2.)-1.)/2.;   // -7 -> centre paddle will be 0.
+				stoppmt-= ((MRDSpecs::numpaddlesperpanelvv.at(stoplayer/2)/2.)-1.)/2.;
 				int vsidestop=0;  // 0 indicates a centre paddle - neither side.
 					 if(stoppmt>0) vsidestop= 1;              // right hand side
 				else if(stoppmt<0) vsidestop=-1;              // left hand side

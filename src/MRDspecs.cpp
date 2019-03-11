@@ -14,19 +14,22 @@ namespace MRDSpecs{
 	const int numvpanels=5;
 	const int numpanels=numhpanels+numvpanels;
 	const int numplates=12;
+	const int numalustructs=11;
+	const std::vector<int> numpaddlesperpanelvv{30,34,26,30,30};
 
 	const double scintfullxlen = 20;
+	const double scintfullxlen2 = 15;
 	const double scintfullzlen = 0.6;
 	const double scinthfullylen = 147.2;
 	const double scintvfullylen = 130.2;
 
-	const int numalustructs=11;
 	const int numvetopaddles=26;
 	const int vetopaddlesperpanel=13;
 
 	const double steelfullxlen = 305;
 	const double steelfullylen = 274;
 	const double steelfullzlen = 5;
+	const double scintfullzlen2 = 13;
 
 	const double scinttapfullwidth = 17.1;
 	const double scinttapfullheight = 7.8;
@@ -49,7 +52,6 @@ namespace MRDSpecs{
 	const double layergap = steelscintgap + scintalugap + alusteelgap;
 	const double nothickness = 0.01;
 
-	const double mrdZlen = numplates*steelfullzlen + (numpanels+1)*scintfullzlen + numalustructs*alufullzlen + numpanels*layergap + scintalugap;
 
 	const double tankouterRadius= 152.4;
 
@@ -63,35 +65,37 @@ namespace MRDSpecs{
 	const double maxheight = *std::max_element(heights,heights+(sizeof(heights)/sizeof(heights[0])))+0.1;
 
 	const int nummrdpmts=306;
-	const std::vector<int> layeroffsets = {0, 26, 56, 82, 112, 138, 168, 194, 224, 250, 280, 306};
-	// ids of the first pmt in each layer.                                       KEEP an extra ^^^
+	const std::vector<int> layeroffsets = {0, 26, 56, 82, 116, 142, 168, 194, 224, 250, 280, 306};
+	// ids of the first pmt in each layer.                                     KEEP an extra ^^^
 
 	const float MRD_width = ((numpaddlesperpanelv/2)*(scintfullxlen+scintbordergap))/2.;
 	const float MRD_height = ((numpaddlesperpanelh/2)*(scintfullxlen+scintbordergap))/2.;
 	const float MRD_layer2 = 290.755;
 	const float MRD_start = 325.5;
-	const float MRD_depth = 139.09;
+	const float MRD_depth = 140.49;
+	//const double mrdZlen = numplates*steelfullzlen + (numpanels+1)*scintfullzlen + numalustructs*alufullzlen + numpanels*layergap + scintalugap;
+	const double mrdZlen = MRD_depth;
 	const float MRD_end = 464.59;
 	const float MRD_steel_width = (305./2.);
 	const float MRD_steel_height = (274./2.);
 
 	/* output from WCSim:
 	########## MRD front face: 325.5                     ##########
-	########## MRD total Z length: 139.09                ##########
+	########## MRD total Z length: 140.49                ##########
 	########## MRD scintillator layer 0  (H) at z=336.08 ##########     1
-	########## MRD scintillator layer 1  (V) at z=348.19 ########## 1
-	########## MRD scintillator layer 2  (H) at z=360.30 ##########     2
-	########## MRD scintillator layer 3  (V) at z=372.41 ########## 2
-	########## MRD scintillator layer 4  (H) at z=384.52 ##########     3
-	########## MRD scintillator layer 5  (V) at z=396.63 ########## 3
-	########## MRD scintillator layer 6  (H) at z=408.74 ##########     4
-	########## MRD scintillator layer 7  (V) at z=420.85 ########## 4
-	########## MRD scintillator layer 8  (H) at z=432.96 ##########     5
-	########## MRD scintillator layer 9  (V) at z=445.07 ########## 5
-	########## MRD scintillator layer 10 (H) at z=457.18 ##########
+	########## MRD scintillator layer 1  (V) at z=348.54 ########## 1
+	########## MRD scintillator layer 2  (H) at z=361.00 ##########     2
+	########## MRD scintillator layer 3  (V) at z=373.46 ########## 2
+	########## MRD scintillator layer 4  (H) at z=385.92 ##########     3
+	########## MRD scintillator layer 5  (V) at z=398.03 ########## 3
+	########## MRD scintillator layer 6  (H) at z=410.14 ##########     4
+	########## MRD scintillator layer 7  (V) at z=422.25 ########## 4
+	########## MRD scintillator layer 8  (H) at z=434.36 ##########     5
+	########## MRD scintillator layer 9  (V) at z=446.47 ########## 5
+	########## MRD scintillator layer 10 (H) at z=458.58 ##########     6
 	*/
 
-	const std::vector<double> mrdscintlayers{336.080, 348.190, 360.300, 372.410, 384.520, 396.630, 408.740, 420.850, 432.960, 445.070, 457.180 };
+	const std::vector<double> mrdscintlayers{336.080, 348.54, 361.00, 373.46, 385.92, 398.03, 410.14, 422.25, 434.36, 446.47, 458.58 };
 
 	//TODO: should retrieve this info from the geo in wcsimanalysis class
 	const float tank_start = 15.70;

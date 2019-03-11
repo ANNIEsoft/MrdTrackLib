@@ -204,25 +204,24 @@ void cMRDSubEvent::DrawTrueTracks(){
 		
 		// add the starting x and y, scaled to canvas size and offset to start of MRD diagram
 		/*  ✩ ✨ Magic Numbers! ✨ ✩ */
-
-		double topscalefactor=1.5;           // compress canvas width to paddle diagram height
-		double sidescalefactor=1.55;         //   "         "      "       "       "    width
+		double topscalefactor=1.2;           // compress canvas width to paddle diagram height (top view)
+		double sidescalefactor=1.2;         //   "         "      "       "       "    width (side view)
 		double topdepthscalefactor=1.18;     //   "         "      "       "       "    depth (top view)
-		double sidedepthscalefactor=1.2;     // compress canvas depth to paddle diagram depth (side view)
-		double xscalefactor=(0.5/0.403825);  // correct differences in definition of MRD width and height
-		double yscalefactor=(0.5/0.384671);  // between this method and that for paddle placements
-		double topzoffset=0.0;               // shifts the track arrows +z          (top  view)
-		double sidezoffset=0.0;              // to account for centering of diagram (side view)
+		double sidedepthscalefactor=1.16;     // compress canvas depth to paddle diagram depth (side view)
+		double xscalefactor=1.;//(0.5/0.403825);  // correct differences in definition of MRD width and height
+		double yscalefactor=1.;//(0.5/0.384671);  // between this method and that for paddle placements
+		double topzoffset=0.075;               // shifts the track arrows +z          (top  view)
+		double sidezoffset=0.058;              // to account for centering of diagram (side view)
 		
-		mrdentryx*=xscalefactor;
-		mrdexitx*=xscalefactor;
-		mrdentryy*=yscalefactor;
-		mrdexity*=yscalefactor;
-#ifdef DRAWTRUEVERBOSE
-		std::cout<<"scaled entry and exit points in terms of mrd width, height and depth are: ("
-			<<(mrdentryx/MRDSpecs::maxwidth)<<", "<<(mrdentryy/MRDSpecs::maxheight)<<", "<<(mrdentryz/MRDSpecs::mrdZlen)<<") -> ("
-			<<(mrdexitx/MRDSpecs::maxwidth)<<", "<<(mrdexity/MRDSpecs::maxheight)<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<std::endl;
-#endif
+//		mrdentryx*=xscalefactor;
+//		mrdexitx*=xscalefactor;
+//		mrdentryy*=yscalefactor;
+//		mrdexity*=yscalefactor;
+//#ifdef DRAWTRUEVERBOSE
+//		std::cout<<"scaled entry and exit points in terms of mrd width, height and depth are: ("
+//			<<(mrdentryx/MRDSpecs::maxwidth)<<", "<<(mrdentryy/MRDSpecs::maxheight)<<", "<<(mrdentryz/MRDSpecs::mrdZlen)<<") -> ("
+//			<<(mrdexitx/MRDSpecs::maxwidth)<<", "<<(mrdexity/MRDSpecs::maxheight)<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<std::endl;
+//#endif
 		
 		// one last thing: the beam comes from the left. In the top view, right-hand-side (x>0)
 		// needs to map to the bottom of the canvas (canvas_y<0) - so, let's swap the signs of all

@@ -21,6 +21,8 @@ namespace MRDSpecs{
 	extern const double scintfullzlen;
 	extern const double scinthfullylen;
 	extern const double scintvfullylen;
+	extern const double scintfullxlen2;
+	extern const double scintfullzlen2;
 
 	extern const int numalustructs;
 	extern const int numvetopaddles;
@@ -65,6 +67,7 @@ namespace MRDSpecs{
 	extern const double maxheight;
 
 	extern const int nummrdpmts;
+	extern const std::vector<int> numpaddlesperpanelvv;
 	extern const std::vector<int> layeroffsets;
 
 	extern const float MRD_width;

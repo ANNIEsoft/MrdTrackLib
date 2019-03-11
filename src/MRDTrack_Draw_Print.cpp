@@ -9,6 +9,13 @@
 
 #include <iostream>
 
+#ifndef MRDTrack_RECO_VERBOSE
+//#define MRDTrack_RECO_VERBOSE
+#endif
+
+using std::cout;
+using std::endl;
+
 void cMRDTrack::Print2(bool eventinfo=true){					// a more generic print
 
 std::cout<<"NEXT MRD TRACK"<<std::endl;
@@ -140,6 +147,10 @@ void cMRDTrack::Print(){	// a print specific to printing CA algorithm results
 }
 
 void cMRDTrack::DrawReco(TCanvas* imgcanvas, std::vector<TArrow*> &trackarrows, EColor thistrackscolour, std::vector<TBox*> paddlepointers){
+	
+	// TODO: when reconstructed track start/end is set by other view, (in top view at least),
+	// theoffset should be set to 0 so it aligns correctly with the alt view paddles
+	
 	// draw horizontal paddle track
 	imgcanvas->cd(1);
 	for(int j=0; j<htrackcells.size(); j++){
@@ -253,14 +264,14 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 	Double_t mrdexitx = trackfitstop.X();
 	Double_t mrdexity = trackfitstop.Y();
 	Double_t mrdexitz = trackfitstop.Z();
-
+	
 //	for debugging
-//	Double_t mrdentryz = mrdcluster::paddle_originz.at(14)/10.;
-//	Double_t mrdentryx = mrdcluster::paddle_originx.at(14)/10.;
-//	Double_t mrdentryy = mrdcluster::paddle_originy.at(14)/10.;
-//	Double_t mrdexitz = mrdcluster::paddle_originz.at(294)/10.;
-//	Double_t mrdexitx = mrdcluster::paddle_originx.at(294)/10.;
-//	Double_t mrdexity = mrdcluster::paddle_originy.at(294)/10.;
+//	Double_t mrdentryz = MRDSpecs::paddle_originz.at(35)/10.;
+//	Double_t mrdentryx = -0.01;//MRDSpecs::paddle_originx.at(0)/10.;
+//	Double_t mrdentryy = 0.01;//MRDSpecs::paddle_originy.at(0)/10.;
+//	Double_t mrdexitz = MRDSpecs::paddle_originz.at(MRDSpecs::nummrdpmts-30)/10.;
+//	Double_t mrdexitx = MRDSpecs::paddle_originx.at(MRDSpecs::nummrdpmts-27)/10.;
+//	Double_t mrdexity = MRDSpecs::paddle_originy.at(MRDSpecs::nummrdpmts-1)/10.;
 	
 #ifdef MRDTrack_RECO_VERBOSE
 	std::cout<<"mrd entry point is ("<<mrdentryx<<", "<<mrdentryy<<", "<<mrdentryz<<")"<<std::endl;
@@ -289,26 +300,26 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 	// scale cm to canvas size and offset to start of MRD diagram
 	/*  ✩ ✨ Magic Numbers! ✨ ✩ */
 	double anoffset=(MRDSpecs::scintfullzlen+MRDSpecs::scintalugap)*5.;  // this accounts for the half shift
-	double topscalefactor=1.5;           // compress canvas width to paddle diagram height
-	double sidescalefactor=1.55;         //   "         "      "       "       "    width
+	double topscalefactor=1.2;           // compress canvas width to paddle diagram height (top view)
+	double sidescalefactor=1.2;         //   "         "      "       "       "    width (side view)
 	double topdepthscalefactor=1.18;     //   "         "      "       "       "    depth (top view)
-	double sidedepthscalefactor=1.2;     // compress canvas depth to paddle diagram depth (side view)
-	double xscalefactor=(0.5/0.403825);  // correct differences in definition of MRD width and height
-	double yscalefactor=(0.5/0.384671);  // between this method and that for paddle placements
-	double topzoffset=0.0;               // shifts the track arrows +z          (top  view)
-	double sidezoffset=0.0;              // to account for centering of diagram (side view)
+	double sidedepthscalefactor=1.16;     // compress canvas depth to paddle diagram depth (side view)
+	double xscalefactor=1.;//(0.5/0.403825);  // correct differences in definition of MRD width and height
+	double yscalefactor=1.;//(0.5/0.384671);  // between this method and that for paddle placements
+	double topzoffset=0.075;               // shifts the track arrows +z          (top  view)
+	double sidezoffset=0.058;              // to account for centering of diagram (side view)
 	
-	mrdentryx*=xscalefactor;
-	mrdexitx*=xscalefactor;
-	mrdentryy*=yscalefactor;
-	mrdexity*=yscalefactor;
-#ifdef MRDTrack_RECO_VERBOSE
-	std::cout<<"scaled entry and exit points in terms of mrd width, height and depth are: ("
-		<<(mrdentryx/MRDSpecs::maxwidth)<<", "<<(mrdentryy/MRDSpecs::maxheight)
-		<<", "<<(mrdentryz/MRDSpecs::mrdZlen)<<") -> ("
-		<<(mrdexitx/MRDSpecs::maxwidth)<<", "<<(mrdexity/MRDSpecs::maxheight)
-		<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<std::endl;
-#endif
+//	mrdentryx*=xscalefactor;
+//	mrdexitx*=xscalefactor;
+//	mrdentryy*=yscalefactor;
+//	mrdexity*=yscalefactor;
+//#ifdef MRDTrack_RECO_VERBOSE
+//	std::cout<<"scaled entry and exit points in terms of mrd width, height and depth are: ("
+//		<<(mrdentryx/MRDSpecs::maxwidth)<<", "<<(mrdentryy/MRDSpecs::maxheight)
+//		<<", "<<(mrdentryz/MRDSpecs::mrdZlen)<<") -> ("
+//		<<(mrdexitx/MRDSpecs::maxwidth)<<", "<<(mrdexity/MRDSpecs::maxheight)
+//		<<", "<<(mrdexitz/MRDSpecs::mrdZlen)<<")"<<std::endl;
+//#endif
 	
 	// one last thing: the beam comes from the left. In the top view, right-hand-side (x>0)
 	// needs to map to the bottom of the canvas (canvas_y<0) - so, let's swap the signs of all
