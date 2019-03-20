@@ -75,7 +75,7 @@ namespace MRDSpecs{
 	const float MRD_depth = 140.49;
 	//const double mrdZlen = numplates*steelfullzlen + (numpanels+1)*scintfullzlen + numalustructs*alufullzlen + numpanels*layergap + scintalugap;
 	const double mrdZlen = MRD_depth;
-	constexpr float MRD_end = MRD_start+MRD_depth;
+	const float MRD_end = 465.99;
 	const float MRD_steel_width = (305./2.);
 	const float MRD_steel_height = (274./2.);
 
