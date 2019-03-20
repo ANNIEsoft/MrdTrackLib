@@ -131,6 +131,7 @@ class cMRDSubEvent : public TObject {		// TObject inheritance is required to put
 	void ComputePaddleTransformation (const Int_t copyNo, TVector3 &origin, Bool_t &ishpaddle);
 	int GetLayerNum(int copyNo, int* paddlenuminlayer=nullptr, bool* ishpaddle=nullptr);
 	int GetNumPaddlesInLayer(int layernum);
+	void HighlightPaddles(std::vector<std::vector<int>> paddlesToHighlight);
 	
 	static std::vector<Int_t> aspectrumv;
 	static std::vector<std::string> colorhexes;

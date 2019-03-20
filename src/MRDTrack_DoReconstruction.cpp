@@ -85,11 +85,11 @@ void cMRDTrack::DoReconstruction(){
 	}
 	
 	// Projection to MRD front face: XXX do we need this? 
-//	Double_t mrdentryz = MRD_start;
-//	Double_t mrdentryx = vtrackorigin + vtrackgradient*mrdentryz;
-//	Double_t mrdentryy = htrackorigin + htrackgradient*mrdentryz;
-//	mrdentrypoint=TVector3(mrdentryx,mrdentryy,mrdentryz);
-//	// and find allowed area at the MRD front face, for checking compatibility with tank forward projections
+	Double_t mrdentryz = MRDSpecs::MRD_start;
+	Double_t mrdentryx = vtrackorigin + vtrackgradient*mrdentryz;
+	Double_t mrdentryy = htrackorigin + htrackgradient*mrdentryz;
+	mrdentrypoint=TVector3(mrdentryx,mrdentryy,mrdentryz);
+	// and find allowed area at the MRD front face, for checking compatibility with tank forward projections
 //	double mrdentryxmax = vtrackorigin + vtrackoriginerror + (vtrackgradient*mrdentryz);
 //	double mrdentryymax = htrackorigin + htrackoriginerror + (htrackgradient*mrdentryz);
 //	double mrdentryxmin = vtrackorigin - vtrackoriginerror - (vtrackgradient*mrdentryz);
@@ -151,6 +151,7 @@ void cMRDTrack::CalculateEnergyLoss(){
 									+pow(vtrackgradsteepest,2));
 	double trackanglemin=sqrt(pow(htrackgradshallowest,2)
 									+pow(vtrackgradshallowest,2));
+	trackangleerror = atan(trackanglemax-trackanglemin);
 	double dEdxmax = MRDenergyvspenetration.Eval(trackanglemax); // TODO evaluate @ fit min when availabe
 	double dEdxmin = MRDenergyvspenetration.Eval(trackanglemin); // TODO evaluate @ fit max when available
 	double EnergyLossMax = mutracklengthinMRD*dEdxmax;

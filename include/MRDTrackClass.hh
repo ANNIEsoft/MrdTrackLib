@@ -237,11 +237,11 @@ class cMRDTrack : public TObject {			// TObject inheritance is required to put i
 	// Static Members
 	// ==============
 	static Bool_t fillstaticmembers;
+	public:
 	static TF1 MRDenergyvspenetration;
 	
 	// Default Constructor
 	// ====================
-	public:
 	// Default constructor that initialises all private members required for ROOT classes
 	cMRDTrack();
 	

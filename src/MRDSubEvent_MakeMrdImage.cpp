@@ -157,7 +157,7 @@ void cMRDSubEvent::DrawMrdCanvases(){
 	cout<<"adding scints"<<endl;
 #endif
 	Bool_t firsthpaddledone=false, firstvpaddledone=false;
-	//std::pair<double, double> xupcorner1, xupcorner2, xdowncorner1, xdowncorner2, yupcorner1, yupcorner2, ydowncorner1, ydowncorner2;	// part of cMRDSubEvent class now
+	//std::pair<double, double> xupcorner1, xupcorner2, xdowncorner1, xdowncorner2, yupcorner1, yupcorner2, ydowncorner1, ydowncorner2; // part of cMRDSubEvent class now
 	Bool_t rightsidehit=false, leftsidehit=false, tophit=false, bottomhit=false;
 	
 	// LOOP OVER ALL PADDLES AND HIGHLIGHT THAT THAT WERE HIT
@@ -255,11 +255,10 @@ void cMRDSubEvent::DrawMrdCanvases(){
 			}
 			paddlepointers.at(paddle) = thepaddle;
 		}
-		thepaddle->SetFillStyle(1001);	// solid fill
+		thepaddle->SetFillStyle(1001); // solid fill
 		if(paddleishit){ thepaddle->SetFillColor(paddlecolour); } else { thepaddle->SetFillColor(11); }
 		// if the paddle was hit light it up - color 5 (kYellow) otherwise leave it dark - colour 11 (grey)
-		thepaddle->SetLineColor(1);	//black
-		thepaddle->SetLineWidth(2);
+		thepaddle->SetLineWidth(0);
 		(ishpaddle) ? imgcanvas->cd(1) : imgcanvas->cd(2);
 		thepaddle->Draw();
 		
@@ -280,37 +279,33 @@ void cMRDSubEvent::DrawMrdCanvases(){
 				holderx1=((MRDSpecs::scintalugap*10)/(MRDSpecs::maxwidth*xmagicscaling));
 				holderx2=(MRDSpecs::scinthfullylen/(MRDSpecs::maxwidth*xmagicscaling));
 				// some paddles are shown in both views, so we have more TBoxes than real PMTs
-				Int_t overflowindex = MRDSpecs::nummrdpmts + (2*MRDSpecs::paddle_layers.at(paddle));	// RH paddle
+				Int_t overflowindex = MRDSpecs::nummrdpmts + (2*MRDSpecs::paddle_layers.at(paddle)); // RH paddle
 				if(paddlepointers.at(overflowindex)==0){
 					thepaddle = new TBox(holderz+otherviewoffset,0.5+holderx1,holderz+(scintboxwidth/(MRDSpecs::mrdZlen*zmagicscaling))+otherviewoffset, 0.5+holderx1+holderx2);
 					paddlepointers.at(overflowindex) = thepaddle;
 				} else {
 					thepaddle = paddlepointers.at(overflowindex);
 				}
-				thepaddle->SetFillStyle(1001);	// solid fill
+				thepaddle->SetFillStyle(1001); // solid fill
 				if(tophit){ thepaddle->SetFillColor(paddlecolour); } else { thepaddle->SetFillColor(11); }
 #ifdef DRAWSUPERVERBOSE
 				(tophit) ? cout<<"top paddle is hit"<<endl : cout<<"top paddle not hit"<<endl;
 #endif
 				// kYellow if hit or grey otherwise
-				thepaddle->SetLineColor(1);	//black
-				thepaddle->SetLineWidth(2);
 				thepaddle->Draw();
-				overflowindex++;	// left side paddle
+				overflowindex++; // left side paddle
 				if(paddlepointers.at(overflowindex)==0){
 					thepaddle = new TBox(holderz+otherviewoffset,0.5-holderx1,holderz+(scintboxwidth/(MRDSpecs::mrdZlen*zmagicscaling))+otherviewoffset, 0.5-(holderx1+holderx2));
 					paddlepointers.at(overflowindex) = thepaddle;
 				} else {
 					thepaddle = paddlepointers.at(overflowindex);
 				}
-				thepaddle->SetFillStyle(1001);	// solid fill
+				thepaddle->SetFillStyle(1001); // solid fill
 				if(bottomhit){ thepaddle->SetFillColor(paddlecolour); } else { thepaddle->SetFillColor(11); }
 #ifdef DRAWSUPERVERBOSE
 				(bottomhit) ? cout<<"bottom paddle is hit"<<endl : cout<<"bottom paddle not hit"<<endl;
 #endif
 				// kYellow if hit or grey otherwise
-				thepaddle->SetLineColor(1);	//black
-				thepaddle->SetLineWidth(2);
 				thepaddle->Draw();
 				
 			} else {
@@ -321,37 +316,33 @@ void cMRDSubEvent::DrawMrdCanvases(){
 				imgcanvas->cd(2);
 				holdery1=((MRDSpecs::scintalugap*10)/(MRDSpecs::maxheight*ymagicscaling));
 				holdery2=(MRDSpecs::scintvfullylen/(MRDSpecs::maxheight*ymagicscaling));
-				Int_t overflowindex = MRDSpecs::nummrdpmts + (2*MRDSpecs::paddle_layers.at(paddle));	// top paddle
+				Int_t overflowindex = MRDSpecs::nummrdpmts + (2*MRDSpecs::paddle_layers.at(paddle)); // top paddle
 				if(paddlepointers.at(overflowindex)==0){
 					thepaddle = new TBox(holderz+otherviewoffset,holdery1+0.5,holderz+(scintboxwidth/(MRDSpecs::mrdZlen*zmagicscaling))+otherviewoffset,0.5+holdery1+holdery2);
 					paddlepointers.at(overflowindex) = thepaddle;
 				} else {
 					thepaddle = paddlepointers.at(overflowindex);
 				}
-				thepaddle->SetFillStyle(1001);	// solid fill
+				thepaddle->SetFillStyle(1001); // solid fill
 				if(leftsidehit){ thepaddle->SetFillColor(paddlecolour); } else { thepaddle->SetFillColor(11); }
 #ifdef DRAWSUPERVERBOSE
 				(leftsidehit) ? cout<<"left paddle is hit"<<endl : cout<<"left paddle not hit"<<endl;
 #endif
 				// kYellow if hit or grey otherwise
-				thepaddle->SetLineColor(1);	//black
-				thepaddle->SetLineWidth(2);
 				thepaddle->Draw();
-				overflowindex++;	// bottom paddle
+				overflowindex++; // bottom paddle
 				if(paddlepointers.at(overflowindex)==0){
 					thepaddle = new TBox(holderz+otherviewoffset,0.5-holdery1,holderz+(scintboxwidth/(MRDSpecs::mrdZlen*zmagicscaling))+otherviewoffset,0.5-(holdery1+holdery2));
 					paddlepointers.at(overflowindex) = thepaddle;
 				} else {
 					thepaddle = paddlepointers.at(overflowindex);
 				}
-				thepaddle->SetFillStyle(1001);	// solid fill
+				thepaddle->SetFillStyle(1001); // solid fill
 				if(rightsidehit){ thepaddle->SetFillColor(paddlecolour); } else { thepaddle->SetFillColor(11); }
 #ifdef DRAWSUPERVERBOSE
 				(rightsidehit) ? cout<<"right paddle is hit"<<endl : cout<<"right paddle not hit"<<endl;
 #endif
 				// kYellow if hit or grey otherwise
-				thepaddle->SetLineColor(1);	//black
-				thepaddle->SetLineWidth(2);
 				thepaddle->Draw();
 			}
 			
@@ -362,7 +353,7 @@ void cMRDSubEvent::DrawMrdCanvases(){
 #endif
 		}
 	}
-	//gPad->WaitPrimitive();	// wait for user to click
+	//gPad->WaitPrimitive(); // wait for user to click
 	// imgcanvas->SaveAs(TString::Format("mrdtracks_%d.png",event_id)); // invoke after adding tracks
 //	pmts_hit = holdme;
 //	digi_ts = holdmetoo;
@@ -453,4 +444,46 @@ int cMRDSubEvent::GetLayerNum(int copyNo, int* paddlenuminlayer, bool* ishpaddle
 int cMRDSubEvent::GetNumPaddlesInLayer(int layernum){
 	if((layernum%2)==0) return MRDSpecs::numpaddlesperpanelh;
 	else return MRDSpecs::numpaddlesperpanelvv.at((layernum-1)/2);
+}
+
+void cMRDSubEvent::HighlightPaddles(std::vector<std::vector<int>> paddlesToHighlight){
+	// for comparing against real trajectories we can highlight the PMTs
+	// that saw photons from a given particle
+	// input is a vector over particles of vector over PMTs hit
+	// highlight by giving the paddles a bolder, coloured border, using different colours
+	// to distinguish different particles
+	
+	// generate a unique colour for the border. They'll be pulled from the same colour set
+	// as the tracks, but the two are completely independent: matching or mismatching colours
+	// are irrelevant
+	for(int particlei=0; particlei<paddlesToHighlight.size(); particlei++){
+		int trackcolourindex=particlei+1; // element 0 is black
+		while(trackcolourindex+1>=trackcolours.size()) trackcolourindex-=(trackcolours.size()-1);
+		EColor thisbordercolour = trackcolours.at(trackcolourindex);
+		// highlight the borders of the paddles specified
+		std::vector<int> paddleshit = paddlesToHighlight.at(particlei);
+		for(int paddlei=0; paddlei<paddleshit.size(); paddlei++){
+			int tubeId = paddleshit.at(paddlei);
+			if(tubeId<paddlepointers.size()){
+				if(paddlepointers.at(tubeId)!=nullptr){
+					TBox *thepaddle = paddlepointers.at(tubeId);
+					thepaddle->SetLineColor(thisbordercolour);
+					thepaddle->SetLineWidth(1.5);
+					thepaddle->SetLineStyle(1);
+					bool ishpaddle;
+					GetLayerNum(tubeId, nullptr, &ishpaddle);
+					(ishpaddle) ? imgcanvas->cd(1) : imgcanvas->cd(2);
+					thepaddle->Draw("l");
+				} else {
+					std::cerr<<"cMRDSubEvent::HighlightPaddles() error! Paddle for PMT "<<paddlei
+							 <<" has nullptr! Cannot set border colour!"<<std::endl;
+					continue;
+				}
+			} else {
+				std::cerr<<"cMRDSubEvent::HighlightPaddles() error! PMT "<<paddlei
+						 <<" has is beyond range of paddles vector!"<<std::endl;
+				continue;
+			}
+		}
+	}
 }

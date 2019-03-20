@@ -1339,7 +1339,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 			trackcolourindex=tracki+1; // element 0 is black
 			while(trackcolourindex+1>=trackcolours.size()) trackcolourindex-=(trackcolours.size()-1);
 			thistrackscolour = trackcolours.at(trackcolourindex);
-			fittrackscolour = trackcolours.at(trackcolourindex+1); // for now, give it a diff color
+			fittrackscolour = trackcolours.at(trackcolourindex);
 		}
 		cMRDTrack* thatrack = &(tracksthissubevent[tracksthissubevent.size()-1]);
 		if(printtracks) thatrack->Print();
