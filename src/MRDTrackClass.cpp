@@ -187,40 +187,6 @@ extrahpointerrors(), extrazpoints(), extrazpointerrors() {
 	}
 }
 
-// Copy Constructor
-// ================
-cMRDTrack::cMRDTrack(cMRDTrack const &trackin) :
-MRDtrackID(trackin.MRDtrackID), wcsimfile(trackin.wcsimfile), run_id(trackin.run_id),
-event_id(trackin.event_id), mrdsubevent_id(trackin.mrdsubevent_id), trigger(trackin.trigger),
-digi_ids(trackin.digi_ids), pmts_hit(trackin.pmts_hit), digi_qs(trackin.digi_qs), digi_ts(trackin.digi_ts),
-digi_numphots(trackin.digi_numphots), digi_phot_ts(trackin.digi_phot_ts),
-digi_phot_parents(trackin.digi_phot_parents), tanktrackID(trackin.tanktrackID), 
-layers_hit(trackin.layers_hit), eDepsInLayers(trackin.eDepsInLayers), KEStart(trackin.KEStart),
-KEEnd(trackin.KEEnd), particlePID(trackin.particlePID),
-trueTrackID(trackin.trueTrackID), htrackcells(trackin.htrackcells), vtrackcells(trackin.vtrackcells), 
-htrackclusters(trackin.htrackclusters), vtrackclusters(trackin.vtrackclusters),
-htrackorigin(trackin.htrackorigin), htrackoriginerror(trackin. htrackoriginerror),
-htrackgradient(trackin. htrackgradient), htrackgradienterror(trackin. htrackgradienterror),
-htrackfitchi2(trackin. htrackfitchi2), vtrackorigin(trackin. vtrackorigin),
-vtrackoriginerror(trackin. vtrackoriginerror), vtrackgradient(trackin. vtrackgradient),
-vtrackgradienterror(trackin. vtrackgradienterror), vtrackfitchi2(trackin. vtrackfitchi2),
-trackfitstart(trackin.trackfitstart), trackfitstop(trackin.trackfitstop), 
-ispenetrating(trackin.ispenetrating), isstopped(trackin.isstopped), sideexit(trackin.sideexit),
-penetrationdepth(trackin.penetrationdepth), EnergyLoss(trackin.EnergyLoss), 
-projectedtankexitpoint(trackin.projectedtankexitpoint), interceptstank(trackin.interceptstank),
-trackangle(trackin.trackangle), EnergyLossError(trackin.EnergyLossError), 
-trackangleerror(trackin.trackangleerror), mrdentryxbounds(trackin.mrdentryxbounds), 
-mrdentryybounds(trackin.mrdentryybounds), extravpoints(trackin.extravpoints), 
-extravpointerrors(trackin.extravpointerrors), extrahpoints(trackin.extrahpoints), 
-extrahpointerrors(trackin.extrahpointerrors), extrazpoints(trackin.extrazpoints), 
-extrazpointerrors(trackin.extrazpointerrors)
-/*, digits(trackin.digits), trueTrack(trackin.trueTrack)*/ 
-{
-#ifdef MRDTrack_VERBOSE
-	std::cout<<std::endl<<"copy constructing a track with "<<digi_ids.size()<<" digits"<<std::endl;
-#endif
-}
-
 // Set Static Members
 // ==================
 TF1 cMRDTrack::MRDenergyvspenetration=TF1("af","expo(0)+pol0(2)+([3]/([4]-x))",0,1.6);

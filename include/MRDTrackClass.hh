@@ -257,10 +257,6 @@ class cMRDTrack : public TObject {			// TObject inheritance is required to put i
 	std::vector<mrdcell> vtrackcellsin, std::vector<mrdcluster> htrackclustersin, 
 	std::vector<mrdcluster> vtrackclustersin);
 	
-	// Copy Constructor
-	// ================
-	cMRDTrack(cMRDTrack const &trackin);
-	
 	// End class definition
 	// ====================
 	ClassDef(cMRDTrack,1);					// INCREMENT VERSION NUM EVERY TIME CLASS MEMBERS CHANGE
