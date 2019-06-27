@@ -213,8 +213,8 @@ void cMRDTrack::DoTGraphErrorsFit(){
 #endif
 	// horizontal cluster fit
 	// ----------------------
-	TCanvas c1;
-	hclustergraph.Draw("AP");
+	//TCanvas c1;
+	//hclustergraph.Draw("AP");
 	TF1 htrackfit("htrackfit","pol1",MRDSpecs::MRD_start,(MRDSpecs::MRD_start+MRDSpecs::MRD_depth));
 	htrackfit.SetParameters(0,0);
 #ifdef MRDTrack_RECO_VERBOSE
@@ -241,8 +241,8 @@ void cMRDTrack::DoTGraphErrorsFit(){
 	
 	// vertical cluster fit
 	// --------------------
-	c1.Clear();
-	vclustergraph.Draw("AP");
+	//c1.Clear();
+	//vclustergraph.Draw("AP");
 	TF1 vtrackfit("vtrackfit","pol1",MRDSpecs::MRD_start,(MRDSpecs::MRD_start+MRDSpecs::MRD_depth));
 	vtrackfit.SetParameters(0,0);
 #ifdef MRDTrack_RECO_VERBOSE
