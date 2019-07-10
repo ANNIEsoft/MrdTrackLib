@@ -84,7 +84,7 @@ void cMRDTrack::DoReconstruction(){
 		assert(false);
 	}
 	
-	// Projection to MRD front face: XXX do we need this? 
+	// Projection to MRD front face:
 	Double_t mrdentryz = MRDSpecs::MRD_start;
 	Double_t mrdentryx = vtrackorigin + vtrackgradient*mrdentryz;
 	Double_t mrdentryy = htrackorigin + htrackgradient*mrdentryz;
@@ -457,9 +457,12 @@ bool cMRDTrack::CheckTankIntercept(double htrackgradientin, double vtrackgradien
 	} else {
 		// we know the track at least has height within the tank.
 		// we now need to try to find an intercept in X-Z plane.
+		// [[ n.b. this is equivalent to MCParticleProperties::CheckTankIntercept for tracks not in z plane. ]]
 		// from simultaneous equations:
 		// 1)  x^2 + z^2 = r^2
 		// 2)  x = x0 + m*(z - z0) = m*z + (x0 - m*z0) = m*z + c (<< defines 'c') <<<< wrong?
+		// x, z are in tank-centred coords, c is some known coordinate in tank-centred coords
+		// moving to wcsim coords:
 		// 3)  x = mz + c = m(z'+tank_start+tank_radius) + c = mz' + c'; c' = c + m(tank_start+tank_radius)
 		// we obtain:
 		// z_intercept = [ -mc +/- Sqrt(m^2*c^2 - (1+m^2)*(c^2-r^2)) ] / (1+m^2)

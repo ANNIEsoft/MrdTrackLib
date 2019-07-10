@@ -16,7 +16,7 @@
 using std::cout;
 using std::endl;
 
-void cMRDTrack::Print2(bool eventinfo=true){					// a more generic print
+void cMRDTrack::Print2(bool eventinfo){					// a more generic print
 
 std::cout<<"NEXT MRD TRACK"<<std::endl;
 if(eventinfo){

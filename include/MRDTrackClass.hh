@@ -175,7 +175,7 @@ class cMRDTrack : public TObject {			// TObject inheritance is required to put i
 	void DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows, EColor thistrackscolour);
 	// print CA info and track info
 	void Print();
-	void Print2(bool eventinfo);
+	void Print2(bool eventinfo=true);
 	
 	// Truth Level Info
 	Int_t GetTrueTrackID();

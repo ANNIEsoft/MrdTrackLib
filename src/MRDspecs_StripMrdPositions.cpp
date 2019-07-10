@@ -113,8 +113,8 @@ int StripMrdPositions(){
 			assert("MRDspecs_StripMrdPositions.cpp match failure! Aborting!"&&false);
 		} else {
 			//std::cout<<"setting stats for pmt "<<pmt_id<<std::endl;
-			std::string orientationstring(&next_paddle_orientation);
-			(strcmp(&next_paddle_orientation,"H")==0) ? temp_paddle_orientations.at(pmt_id)=0 : temp_paddle_orientations.at(pmt_id)=1;
+			std::string orientationstring(1,next_paddle_orientation);
+			(orientationstring=="H") ? temp_paddle_orientations.at(pmt_id)=0 : temp_paddle_orientations.at(pmt_id)=1;
 			temp_paddle_layers.at(pmt_id)=next_paddle_layer;
 			temp_paddle_originx.at(pmt_id)=next_paddle_originx;
 			temp_paddle_originy.at(pmt_id)=next_paddle_originy;
