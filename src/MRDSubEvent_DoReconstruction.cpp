@@ -560,7 +560,7 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 		//  - this would be a track longer than the MRD!
 	}
 	
-	// 8. cells with a state of >= mintracklength and no (upstream) neighbours are defined as 
+	// 8. cells with a state of >= mintracklength and no downstream neighbours are defined as
 	// the downstream track ends.
 	std::vector<Int_t> trackstartindices; 
 	for(int acelli=0; acelli<thecells.size(); acelli++){

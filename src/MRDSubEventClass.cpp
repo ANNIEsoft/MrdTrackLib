@@ -77,7 +77,7 @@ cMRDSubEvent::cMRDSubEvent(Int_t mrdsubevent_idin, std::string wcsimefilein, Int
 Int_t triggerin, std::vector<Int_t> digitidsin, std::vector<Int_t> digittubesin, std::vector<Double_t>
 digitqsin, std::vector<Double_t> digittimesin, std::vector<Int_t> digitnumphotsin, std::vector<Double_t> 
 digitstruetimesin, std::vector<Int_t> digitsparentsin, std::vector<std::pair<TVector3,TVector3>> 
-truetrackverticesin, std::vector<Int_t> truetrackpdgsin) :
+truetrackverticesin, std::vector<Int_t> truetrackpdgsin, bool bypassreco) :
 /* information retrieved when creating the track: initialize with input */
 mrdsubevent_id(mrdsubevent_idin), wcsimfile(wcsimefilein), run_id(runidin), event_id(eventidin),
 trigger(triggerin), digi_ids(digitidsin), pmts_hit(digittubesin), digi_qs(digitqsin),
@@ -85,7 +85,7 @@ digi_ts(digittimesin), digi_numphots(digitnumphotsin), digi_phot_ts(digitstrueti
 digi_phot_parents(digitsparentsin),
 /* information calculated: initialize to default */
 layers_hit(), tracksthissubevent(), trackarrows(), truetrackarrows(), trackfitarrows() {
-	eDepsInLayers.assign(MRDSpecs::numpanels, 0.);	// can't assign the size in the class def. 
+	eDepsInLayers.assign(MRDSpecs::numpanels, 0.);  // can't assign the size in the class def.
 	for(auto&& atrack : truetrackverticesin) truetrackvertices.push_back(atrack);
 	for(auto&& atrack : truetrackpdgsin) truetrackpdgs.push_back(atrack);
 	
@@ -105,7 +105,7 @@ layers_hit(), tracksthissubevent(), trackarrows(), truetrackarrows(), trackfitar
 	
 	if(drawcells||drawfit||drawtruetracks) DrawMrdCanvases();  // creates the canvas with the digits
 	if(drawtruetracks) DrawTrueTracks();   // draws true tracks over the event
-	DoReconstruction(printtracks, drawcells, drawfit); // adds the tracks to the canvas
+	if(!bypassreco) DoReconstruction(printtracks, drawcells, drawfit); // adds the tracks to the canvas
 	if(saveimage) imgcanvas->SaveAs(TString::Format("mrdtracks_%d.png",event_id));
 	//std::cout<<"sleeping for 5 seconds to analyse output"<<std::endl;
 	//if(tracksthissubevent.size()) std::this_thread::sleep_for (std::chrono::seconds(15));

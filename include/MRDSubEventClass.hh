@@ -116,7 +116,7 @@ class cMRDSubEvent : public TObject {		// TObject inheritance is required to put
 	Int_t triggerin, std::vector<Int_t> digitidsin, std::vector<Int_t> digittubesin, std::vector<Double_t>
 	digitqsin, std::vector<Double_t> digittimesin, std::vector<Int_t> digitnumphotsin, std::vector<Double_t> 
 	digitstruetimesin, std::vector<Int_t> digitsparentsin, std::vector<std::pair<TVector3,TVector3>> 
-	truetrackverticesin, std::vector<Int_t> truetrackpdgsin);
+	truetrackverticesin, std::vector<Int_t> truetrackpdgsin, bool bypassreco=false);
 	
 	// Drawing
 	// =======

@@ -26,6 +26,8 @@ class mrdcell {
 	
 	void IncrementStatus();
 	void SetClusterAddresses(std::vector<mrdcluster> &trackclusters);
+	void ClearClusterAddresses();
+	void SetCellID(int cellidin);
 	
 	mrdcell(mrdcluster* startcluster, mrdcluster* endcluster);
 	

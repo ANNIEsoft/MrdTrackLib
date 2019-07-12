@@ -159,6 +159,23 @@ trackangle(-1.), EnergyLossError(-1), trackangleerror(-1), mrdentryxbounds(), mr
 extravpoints(), extravpointerrors(), extrahpoints(),
 extrahpointerrors(), extrazpoints(), extrazpointerrors() {
 	
+	// we need to update the internal pointers of mrdcells if we're going to use them
+	// or at least clear them so we don't try to dereference pointers to external clusters
+	for(int celli=0; celli<htrackcells.size(); celli++){
+		mrdcell& acell = htrackcells.at(celli);
+		// need to tell the cell where abouts it is in the track
+		// so that it knows which clusters to set it's pointers at
+		acell.SetCellID(celli);
+		acell.ClearClusterAddresses();
+		acell.SetClusterAddresses(htrackclusters);
+	}
+	for(int celli=0; celli<vtrackcells.size(); celli++){
+		mrdcell& acell = vtrackcells.at(celli);
+		acell.SetCellID(celli);
+		acell.ClearClusterAddresses();
+		acell.SetClusterAddresses(vtrackclusters);
+	}
+	
 	if(fillstaticmembers){
 		MRDenergyvspenetration.SetParameters(-3.62645, 3.75503, 2.68525, 3.59244, 1.66969); // TODO MOVE!
 		fillstaticmembers=false;

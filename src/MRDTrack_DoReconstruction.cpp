@@ -42,17 +42,17 @@ void cMRDTrack::DoReconstruction(){
 #ifdef MRDTrack_RECO_VERBOSE
 	std::cout<<"getting hit layers and energy depositions"<<std::endl;
 #endif
-	int numdigits = digi_ids.size();
+	int numdigits = pmts_hit.size();
 	for(Int_t i=0;i<numdigits;i++){
 		// get the extent of the corresponding paddle
-		int digiindex = digi_ids.at(i);
 		Int_t tube_id = pmts_hit.at(i);
 		Int_t strucklayer = MRDSpecs::paddle_layers.at(tube_id);
 		if(std::count(layers_hit.begin(), layers_hit.end(), strucklayer)==0){
 			layers_hit.push_back(strucklayer);
 		}
-		eDepsInLayers.at(strucklayer)+= (digi_qs.at(i));	// TODO: convert q to energy?
+		if(digi_qs.size()>i) eDepsInLayers.at(strucklayer)+= (digi_qs.at(i));  // TODO: convert q to energy?
 	}
+	std::sort(layers_hit.begin(),layers_hit.end());
 	
 	//TVirtualFitter::SetDefaultFitter("Minuit");
 	DoTGraphErrorsFit();
@@ -147,10 +147,12 @@ void cMRDTrack::CalculateEnergyLoss(){
 	double htrackgradshallowest = htrackgradient+(htrackgradienterror*((htrackgradient>0) ? -1. : 1.));
 	double vtrackgradshallowest = vtrackgradient+(vtrackgradienterror*((vtrackgradient>0) ? -1. : 1.));
 	
-	double trackanglemax=sqrt(pow(htrackgradsteepest,2)
+	double trackgradmax=sqrt(pow(htrackgradsteepest,2)
 									+pow(vtrackgradsteepest,2));
-	double trackanglemin=sqrt(pow(htrackgradshallowest,2)
+	double trackanglemax = atan(trackgradmax);
+	double trackgradmin=sqrt(pow(htrackgradshallowest,2)
 									+pow(vtrackgradshallowest,2));
+	double trackanglemin = atan(trackgradmin);
 	trackangleerror = atan(trackanglemax-trackanglemin);
 	double dEdxmax = MRDenergyvspenetration.Eval(trackanglemax); // TODO evaluate @ fit min when availabe
 	double dEdxmin = MRDenergyvspenetration.Eval(trackanglemin); // TODO evaluate @ fit max when available
@@ -158,6 +160,28 @@ void cMRDTrack::CalculateEnergyLoss(){
 	double EnergyLossMin = mutracklengthinMRD*dEdxmin;
 	EnergyLossError = std::max(EnergyLossMax-EnergyLoss,EnergyLoss-EnergyLossMin); // XXX asymmetric errors!
 	
+//	std::cout<<"xdistancemrd="<<muXdistanceinMRD<<std::endl;
+//	std::cout<<"ydistancemrd="<<muYdistanceinMRD<<std::endl;
+//	std::cout<<"zdistancemrd="<<penetrationdepth<<std::endl;
+//	std::cout<<"total track length="<<mutracklengthinMRD<<std::endl;
+//	std::cout<<"track angle="<<trackangle<<std::endl;
+//	std::cout<<"track angle min="<<trackanglemin<<std::endl;
+//	std::cout<<"track angle max="<<trackanglemax<<std::endl;
+//	std::cout<<"dEdx="<<dEdx<<std::endl;
+//	std::cout<<"dEdxmin="<<dEdxmin<<std::endl;
+//	std::cout<<"dEdxmax="<<dEdxmax<<std::endl;
+//	std::cout<<"EnergyLoss="<<EnergyLoss<<std::endl;
+//	std::cout<<"EnergyLossMin="<<EnergyLossMin<<std::endl;
+//	std::cout<<"EnergyLossMax="<<EnergyLossMax<<std::endl;
+//	
+//	std::cout<<"htrackgrad="<<htrackgradient<<std::endl;
+//	std::cout<<"vtrackgrad="<<vtrackgradient<<std::endl;
+//	std::cout<<"htrackgraderr="<<htrackgradienterror<<std::endl;
+//	std::cout<<"vtrackgraderr="<<vtrackgradienterror<<std::endl;
+//	std::cout<<"htrackgradsteepest="<<htrackgradsteepest<<std::endl;
+//	std::cout<<"vtrackgradsteepest="<<vtrackgradsteepest<<std::endl;
+//	std::cout<<"htrackgradshallowest="<<htrackgradshallowest<<std::endl;
+//	std::cout<<"vtrackgradshallowest="<<vtrackgradshallowest<<std::endl;
 }
 
 void cMRDTrack::DoTGraphErrorsFit(){
@@ -214,6 +238,8 @@ void cMRDTrack::DoTGraphErrorsFit(){
 	// horizontal cluster fit
 	// ----------------------
 	//TCanvas c1;
+	//c1.Divide(1,2);
+	//c1.cd(1);
 	//hclustergraph.Draw("AP");
 	TF1 htrackfit("htrackfit","pol1",MRDSpecs::MRD_start,(MRDSpecs::MRD_start+MRDSpecs::MRD_depth));
 	htrackfit.SetParameters(0,0);
@@ -241,7 +267,7 @@ void cMRDTrack::DoTGraphErrorsFit(){
 	
 	// vertical cluster fit
 	// --------------------
-	//c1.Clear();
+	//c1.cd(2);
 	//vclustergraph.Draw("AP");
 	TF1 vtrackfit("vtrackfit","pol1",MRDSpecs::MRD_start,(MRDSpecs::MRD_start+MRDSpecs::MRD_depth));
 	vtrackfit.SetParameters(0,0);

@@ -302,12 +302,12 @@ void cMRDTrack::DrawFit(TCanvas* imgcanvas, std::vector<TArrow*> &trackfitarrows
 	double anoffset=(MRDSpecs::scintfullzlen+MRDSpecs::scintalugap)*5.;  // this accounts for the half shift
 	double topscalefactor=1.2;           // compress canvas width to paddle diagram height (top view)
 	double sidescalefactor=1.2;         //   "         "      "       "       "    width (side view)
-	double topdepthscalefactor=1.18;     //   "         "      "       "       "    depth (top view)
-	double sidedepthscalefactor=1.16;     // compress canvas depth to paddle diagram depth (side view)
+	double topdepthscalefactor=1.08;     //   "         "      "       "       "    depth (top view)
+	double sidedepthscalefactor=1.08;     // compress canvas depth to paddle diagram depth (side view)
 	double xscalefactor=1.;//(0.5/0.403825);  // correct differences in definition of MRD width and height
 	double yscalefactor=1.;//(0.5/0.384671);  // between this method and that for paddle placements
-	double topzoffset=0.075;               // shifts the track arrows +z          (top  view)
-	double sidezoffset=0.058;              // to account for centering of diagram (side view)
+	double topzoffset=0.105;               // shifts the track arrows +z          (top  view)
+	double sidezoffset=0.088;              // to account for centering of diagram (side view)
 	
 //	mrdentryx*=xscalefactor;
 //	mrdexitx*=xscalefactor;
