@@ -231,6 +231,10 @@ class cMRDTrack : public TObject {			// TObject inheritance is required to put i
 	void CheckIfStopping();
 	void CalculateEnergyLoss();
 	
+	// Misc functions:
+	// ==============
+	void UpdateCellAddresses(); // This MUST be called every time the cMRDTrack is moved or copied!!
+	
 	private:
 	// void CalculateParticlePID();  // based on rate of loss? num tracks..? penetration? tank? 
 	
@@ -244,6 +248,20 @@ class cMRDTrack : public TObject {			// TObject inheritance is required to put i
 	// ====================
 	// Default constructor that initialises all private members required for ROOT classes
 	cMRDTrack();
+	
+	// Copy & Move Constructors
+	// ========================
+	// we need to call UpdateCellAddresses whenever we construct by any means, 
+	// so need to manually define ALL constructors
+	// TODO remove the need for this by not using pointers in mrdcells
+	cMRDTrack(const cMRDTrack& in); // copy
+	cMRDTrack(cMRDTrack& in);       // copy
+	cMRDTrack(cMRDTrack&& in);      // move
+	
+	cMRDTrack& operator=(const cMRDTrack& in); // copy assignment
+	cMRDTrack& operator=(cMRDTrack& in);       // copy assignment
+	cMRDTrack& operator=(cMRDTrack&& in);      // move assignment
+	
 	
 	// destructor
 	~cMRDTrack();

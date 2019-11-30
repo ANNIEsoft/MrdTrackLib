@@ -364,16 +364,19 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 					std::cout<<"chi2 is good, checking for existing neighbours and daughters"<<std::endl;
 #endif
 					// these cells are neighbours! 
-					// determine the track direction to see how to proceed << FUDGED. 
-					if(true||(upcell->isdownstreamgoing&&downcell->isdownstreamgoing)){
+					// determine the track direction to see how to proceed
+					// FUDGED in MrdCell class to always be downstreamgoing (times are not precise enough!)
+					if(upcell->isdownstreamgoing&&downcell->isdownstreamgoing){
 						// both are cells of a downstream going track.
 						// now we need to check if this cell is already the upstream neighbour of
 						// another cell - i.e. does the track split here
 						if((upcell->dtneighbourcellindex==-2)||(upcell->dtneighbourcellindex>-1)){
-// Previously the idea here was to look for tracks that split - i.e. if 2 cells are potential downstream candidates,
-// the track 'splits' and the downstream tracks are considered independent from each other, and from the daughter.
-// Unfortunately in practice this fragments tracks, and parent segments get pruned as they are not long enough.
-// Instead, we'll just have to choose one or the other... and hope we choose right, because the other daughter may die!
+// Previously the idea here was to look for tracks that split - 
+// i.e. if 2 cells are potential downstream candidates, the track 'splits'
+// and the downstream tracks are considered independent from each other, and from the daughter.
+// Unfortunately in practice this fragments tracks and parent segments get pruned as they are not long enough.
+// Instead, we'll just have to choose one or the other... and hope we choose right, 
+// because the other daughter may die!
 // TODO: Perhaps add proper support for keeping all daughters associated with the parent ...
 //
 //#ifdef TRACKFINDVERBOSE
@@ -942,9 +945,13 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 #ifdef TRACKFINDVERBOSE
 	std::cout<<"matching tracks in two views"<<std::endl;
 #endif
-	double fomthreshold=7.0; // a pair of tracks must have at least this figure-of-merit to be matched
-						   // XXX needs tuning
-						   // XXX ADD MORE FOM FOR MORE CELLS IN A TRACK.
+	double fomthreshold=6.5; // a pair of tracks must have at least this figure-of-merit to be matched
+	// 7.0 works well....
+	// will not match a single-cell track in one view with a single-cell track in the other view,
+	// even for full compatibility. But, we have a 'MrdStub' search in ToolAnalysis
+	// (part of the TrackCombiner tool) which will match these tracks, so let's not fiddle. 
+	// For reference, the resulting FOM was 6.8
+	
 	// now find the maximum merit pairs, noting that there may not be the same number of tracks in each view!
 	std::vector<std::pair<int,int> > matchedtracks;  // <hpaddletracks index, vpaddletracks index>
 	while(true){

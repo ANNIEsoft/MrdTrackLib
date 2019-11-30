@@ -10,6 +10,8 @@
 #include "TFitResult.h"
 #include "TMatrixD.h"
 #include "TMinuit.h"
+#include "TSystem.h"
+#include "TROOT.h"
 
 #include <algorithm>
 #include <iostream>
@@ -237,10 +239,14 @@ void cMRDTrack::DoTGraphErrorsFit(){
 #endif
 	// horizontal cluster fit
 	// ----------------------
-	//TCanvas c1;
-	//c1.Divide(1,2);
-	//c1.cd(1);
-	//hclustergraph.Draw("AP");
+#ifdef MRDTrack_SHOW_FITRECO
+	TCanvas* c1 = (TCanvas*)gROOT->FindObject("c_clustergraphs");
+	if(c1==nullptr) c1 = new TCanvas("c_clustergraphs");
+	c1->Clear();
+	c1->Divide(1,2);
+	c1->cd(1);
+	hclustergraph.Draw("AP");
+#endif
 	TF1 htrackfit("htrackfit","pol1",MRDSpecs::MRD_start,(MRDSpecs::MRD_start+MRDSpecs::MRD_depth));
 	htrackfit.SetParameters(0,0);
 #ifdef MRDTrack_RECO_VERBOSE
@@ -253,22 +259,25 @@ void cMRDTrack::DoTGraphErrorsFit(){
 	htrackgradient = htrackfitresult->Value(1);
 	htrackgradienterror = htrackfitresult->ParError(1);
 	htrackfitchi2 = htrackfitresult->Chi2();
-#ifdef MRDTrack_RECO_VERBOSE
-	std::cout<<"htrackfitchi2="<<htrackfitchi2<<std::endl;
-	//auto returnedcovmatrix = htrackfitresult->GetCovarianceMatrix();
-	//std::cout << type_name<decltype(returnedcovmatrix)>() << std::endl;
-	std::cout<<"htrackfitcov has "<<htrackfitcov.GetNrows()<<" rows and "<<htrackfitcov.GetNcols()<<" columns"<<std::endl;
-#endif
+//#ifdef MRDTrack_RECO_VERBOSE
+//	std::cout<<"htrackfitchi2="<<htrackfitchi2<<std::endl;
+//	//auto returnedcovmatrix = htrackfitresult->GetCovarianceMatrix();
+//	//std::cout << type_name<decltype(returnedcovmatrix)>() << std::endl;
+//	std::cout<<"htrackfitcov has "<<htrackfitcov.GetNrows()
+//			 <<" rows and "<<htrackfitcov.GetNcols()<<" columns"<<std::endl;
+//#endif
 	htrackfitcov.ResizeTo(2,2);
 	htrackfitcov = htrackfitresult->GetCovarianceMatrix();
 	
-	//c1.SaveAs(TString::Format("htrackfit_%d.png",MRDtrackID));
+	//c1->SaveAs(TString::Format("htrackfit_%d.png",MRDtrackID));
 	//TestCovarianceErrorCalc();  // it works!
 	
 	// vertical cluster fit
 	// --------------------
-	//c1.cd(2);
-	//vclustergraph.Draw("AP");
+#ifdef MRDTrack_SHOW_FITRECO
+	c1->cd(2);
+	vclustergraph.Draw("AP");
+#endif
 	TF1 vtrackfit("vtrackfit","pol1",MRDSpecs::MRD_start,(MRDSpecs::MRD_start+MRDSpecs::MRD_depth));
 	vtrackfit.SetParameters(0,0);
 #ifdef MRDTrack_RECO_VERBOSE
@@ -281,16 +290,16 @@ void cMRDTrack::DoTGraphErrorsFit(){
 	vtrackgradient = vtrackfitresult->Value(1);
 	vtrackgradienterror = vtrackfitresult->ParError(1);
 	vtrackfitchi2 = vtrackfitresult->Chi2();
+//#ifdef MRDTrack_RECO_VERBOSE
+//	std::cout<<"vtrackfitchi2="<<vtrackfitchi2<<std::endl;
+//	std::cout<<"vtrackfitcov has "<<vtrackfitcov.GetNrows()
+//			 <<" rows and "<<vtrackfitcov.GetNcols()<<" columns"<<std::endl;
+//	std::cout<<"vtrack fit had angle "<<((180/M_PI)*atan(vtrackgradient))<<std::endl;
+//	std::cout<<"fit parameters were "<<vtrackorigin<<", "<<vtrackgradient
+//			 <<" with errors "<<vtrackoriginerror<<", "<<vtrackgradienterror<<std::endl;
+//#endif
 	vtrackfitcov.ResizeTo(2,2);
 	vtrackfitcov = vtrackfitresult->GetCovarianceMatrix();
-#ifdef MRDTrack_RECO_VERBOSE
-	std::cout<<"vtrackfitchi2="<<vtrackfitchi2<<std::endl;
-	std::cout<<"vtrackfitcov has "<<vtrackfitcov.GetNrows()<<" rows and "<<vtrackfitcov.GetNcols()<<" columns"<<std::endl;
-	//c1.SaveAs(TString::Format("vtrackfit_%d.png",MRDtrackID));
-		std::cout<<"vtrack fit had angle "<<((180/M_PI)*atan(vtrackgradient))<<std::endl;
-		std::cout<<"fit parameters were "<<vtrackorigin<<", "<<vtrackgradient
-			<<" with errors "<<vtrackoriginerror<<", "<<vtrackgradienterror<<std::endl;
-#endif
 	
 #ifdef MRDTrack_RECO_VERBOSE
 	std::cout<<"htrack fit had angle "<<((180/M_PI)*atan(htrackgradient))<<std::endl;
@@ -305,7 +314,8 @@ void cMRDTrack::DoTGraphErrorsFit(){
 	vtrackfitcov.Print();
 #endif
 	
-	/*
+	
+#if defined MRDTrack_SHOW_FITRECO || defined MRDTrack_RECO_VERBOSE
 	// double check the steepest and shallowest angles by also drawing these on the TGraphErrors
 	// steepest angles
 	double xgraderrorsteep = (vtrackgradienterror*((vtrackgradient>0) ? 1. : -1.));
@@ -325,33 +335,45 @@ void cMRDTrack::DoTGraphErrorsFit(){
 	double xoffsetshallow = vtrackorigin + xoffseterrorshallow;
 	double yoffseterrorshallow = CalculateCovariantError(ygraderrorshallow, 1, htrackfitcov);
 	double yoffsetshallow = htrackorigin + yoffseterrorshallow;
+#endif
 	
-	std::cout<<"best fit x line has gradient "<<vtrackgradient<<", error "<<vtrackgradienterror<<", steepest gradient "<<xgradientsteep<<", shallowest gradient "<<xgradientshallow<<std::endl;
-	std::cout<<"best fit offset is "<<vtrackorigin<<", error "<<vtrackoriginerror<<", steepest offset "<<xoffsetsteep<<", shallowest offset "<<xoffsetshallow<<std::endl;
-	c2.cd();
-	TF1* xsteepestline = new TF1("xsteep","[0]*x+[1]",MRD_start,(MRD_start+MRD_depth));
-	xsteepestline->SetParameters(xgradientsteep,xoffsetsteep);
-	xsteepestline->SetLineColor(kBlue);
-	xsteepestline->Draw("same");
-	TF1* xshallowestline = new TF1("xshallow","[0]*x+[1]",MRD_start,(MRD_start+MRD_depth));
-	xshallowestline->SetParameters(xgradientshallow,xoffsetshallow);
-	xshallowestline->SetLineColor(kRed);
-	xshallowestline->Draw("same");
-	c2.Modified();
+#ifdef MRDTrack_RECO_VERBOSE
+	std::cout<<"best fit x line has gradient "<<vtrackgradient
+			 <<", error "<<vtrackgradienterror<<", steepest gradient "
+			 <<xgradientsteep<<", shallowest gradient "<<xgradientshallow<<std::endl;
+	std::cout<<"best fit offset is "<<vtrackorigin<<", error "<<vtrackoriginerror
+			 <<", steepest offset "<<xoffsetsteep<<", shallowest offset "<<xoffsetshallow<<std::endl;
+#endif
 	
-	c1.cd();
-	TF1* ysteepestline = new TF1("ysteep","[0]*x+[1]",MRD_start,(MRD_start+MRD_depth));
+#ifdef MRDTrack_SHOW_FITRECO
+	c1->cd(1);
+	TF1* ysteepestline = new TF1("ysteep","[0]*x+[1]",MRDSpecs::MRD_start,(MRDSpecs::MRD_start+MRDSpecs::MRD_depth));
 	ysteepestline->SetParameters(ygradientsteep,yoffsetsteep);
 	ysteepestline->SetLineColor(kBlue);
 	ysteepestline->Draw("same");
-	TF1* yshallowestline = new TF1("yshallow","[0]*x+[1]",MRD_start,(MRD_start+MRD_depth));
+	TF1* yshallowestline = new TF1("yshallow","[0]*x+[1]",MRDSpecs::MRD_start,(MRDSpecs::MRD_start+MRDSpecs::MRD_depth));
 	yshallowestline->SetParameters(ygradientshallow,yoffsetshallow);
-	yshallowestline->SetLineColor(kRed);
+	yshallowestline->SetLineColor(kViolet);
 	yshallowestline->Draw("same");
-	c1.Modified();
 	
+	c1->cd(2);
+	TF1* xsteepestline = new TF1("xsteep","[0]*x+[1]",MRDSpecs::MRD_start,(MRDSpecs::MRD_start+MRDSpecs::MRD_depth));
+	xsteepestline->SetParameters(xgradientsteep,xoffsetsteep);
+	xsteepestline->SetLineColor(kBlue);
+	xsteepestline->Draw("same");
+	TF1* xshallowestline = new TF1("xshallow","[0]*x+[1]",MRDSpecs::MRD_start,(MRDSpecs::MRD_start+MRDSpecs::MRD_depth));
+	xshallowestline->SetParameters(xgradientshallow,xoffsetshallow);
+	xshallowestline->SetLineColor(kViolet);
+	xshallowestline->Draw("same");
+	
+	gSystem->ProcessEvents();
+	c1->Modified();
+	c1->Update();
+	gPad->Modified(); gPad->Update();
+	gSystem->ProcessEvents();
+	//c1->SaveAs(TString::Format("vtrackfit_%d.png",MRDtrackID));
 	gPad->WaitPrimitive();
-	*/
+#endif
 }
 
 std::pair<double, double> cMRDTrack::CalculateCovariantError(double errorx, int indexgiven, TMatrixDSym covariancematrix, bool flag){

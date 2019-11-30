@@ -35,7 +35,7 @@ void cMRDSubEvent::Print(){                     // a generic print
 
 void cMRDSubEvent::DrawTracks(){
 	CleanupCanvas();
-	for(auto thetrack : tracksthissubevent){
+	for(auto&& thetrack : tracksthissubevent){
 		// draw the track
 		int trackcolourindex=thetrack.MRDtrackID+1; // element 0 is black
 		while(trackcolourindex+1>=cMRDSubEvent::trackcolours.size()) 

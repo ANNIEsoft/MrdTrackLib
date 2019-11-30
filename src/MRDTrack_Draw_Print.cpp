@@ -26,7 +26,7 @@ if(eventinfo){
 } else {
 	std::cout<<"MRD track: "<<MRDtrackID<<std::endl;
 }
-std::cout<<"num digits: "<<digi_ids.size()<<std::endl
+std::cout<<"num digits: "<<digi_ts.size()<<std::endl
 	<<"num pmts hit: "<<pmts_hit.size()<<std::endl
 	<<"digit times: ";
 	for(auto atime : digi_ts) std::cout<<atime<<", ";
@@ -60,12 +60,15 @@ std::cout<<"total track length: "<<mutracklengthinMRD<<std::endl
 }
 
 void cMRDTrack::Print(){	// a print specific to printing CA algorithm results
+	std::cout<<"Printing track at "<<this<<std::endl;
+	std::cout<<"horizontal track "<<MRDtrackID<<" has "
+		<<htrackcells.size()<<" cells at "<<&htrackcells[0]<<std::endl;
 	for(int j=(htrackcells.size()-1); j>-1; j--){
 		std::cout<<std::endl;
 		mrdcell* acell = &htrackcells.at(j);
-		acell->SetClusterAddresses(htrackclusters);
 		mrdcluster* upcluster = acell->clusters.first;
 		mrdcluster* downcluster = acell->clusters.second;
+		std::cout<<"h cell at "<<acell<<" has clusters at "<<upcluster<<", "<<downcluster<<std::endl;
 		if(!(acell->isdownstreamgoing)){
 			// switch the order of clusters, since the track is upstream going,
 			// but cluster ordering is downstream going
@@ -101,15 +104,14 @@ void cMRDTrack::Print(){	// a print specific to printing CA algorithm results
 		std::cout<<"      physical extent is "<<downcluster->GetXmin()<<" to "<<downcluster->GetXmax()<<std::endl;
 	}
 	// ------------
-	std::cout<<"vertical track "<<MRDtrackID<<" at "<<&vtrackcells[0]<<" has "
-		<<vtrackcells.size()<<" cells:"<<std::endl;
+	std::cout<<"vertical track "<<MRDtrackID<<" has "
+		<<vtrackcells.size()<<" cells at "<<&vtrackcells[0]<<std::endl;
 	for(int j=(vtrackcells.size()-1); j>-1; j--){
 		std::cout<<std::endl;
 		mrdcell* acell = &vtrackcells.at(j);
-		std::cout<<"setting cluster addresses for cell "<<j<<std::endl;
-		acell->SetClusterAddresses(vtrackclusters);
 		mrdcluster* upcluster = acell->clusters.first;
 		mrdcluster* downcluster = acell->clusters.second;
+		std::cout<<"v cell at "<<acell<<" has clusters at "<<upcluster<<", "<<downcluster<<std::endl;
 		if(!(acell->isdownstreamgoing)){
 			// switch the order of clusters, since the track is upstream going,
 			// but cluster ordering is downstream going
@@ -155,7 +157,6 @@ void cMRDTrack::DrawReco(TCanvas* imgcanvas, std::vector<TArrow*> &trackarrows, 
 	imgcanvas->cd(1);
 	for(int j=0; j<htrackcells.size(); j++){
 		mrdcell* acell = &htrackcells.at(j);
-		acell->SetClusterAddresses(htrackclusters);
 		mrdcluster* upcluster = acell->clusters.first;
 		mrdcluster* downcluster = acell->clusters.second;
 		// cluster ordering is downstream going, regardless of track direction
@@ -207,7 +208,6 @@ void cMRDTrack::DrawReco(TCanvas* imgcanvas, std::vector<TArrow*> &trackarrows, 
 	imgcanvas->cd(2);
 	for(int j=0; j<vtrackcells.size(); j++){
 		mrdcell* acell = &vtrackcells.at(j);
-		acell->SetClusterAddresses(vtrackclusters);
 		mrdcluster* upcluster = acell->clusters.first;
 		mrdcluster* downcluster = acell->clusters.second;
 		// cluster ordering is downstream going, regardless of track direction

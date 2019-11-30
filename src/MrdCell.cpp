@@ -23,7 +23,7 @@ void mrdcell::ClearClusterAddresses(){
 mrdcell::mrdcell(mrdcluster* startcluster, mrdcluster* endcluster) : status(0), utneighbourcellindex(-1), 
 	dtneighbourcellindex(-1), parentcellindex(-1), hasdaughters(false), neighbourchi2(-1.) {
 	clusters = std::make_pair(startcluster, endcluster);
-	isdownstreamgoing = (clusters.first->GetTime() < clusters.second->GetTime());
+	isdownstreamgoing = true; //(clusters.first->GetTime() < clusters.second->GetTime());
 	cellid=cellcounter;
 	cellcounter++;
 }

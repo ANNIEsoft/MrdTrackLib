@@ -161,20 +161,7 @@ extrahpointerrors(), extrazpoints(), extrazpointerrors() {
 	
 	// we need to update the internal pointers of mrdcells if we're going to use them
 	// or at least clear them so we don't try to dereference pointers to external clusters
-	for(int celli=0; celli<htrackcells.size(); celli++){
-		mrdcell& acell = htrackcells.at(celli);
-		// need to tell the cell where abouts it is in the track
-		// so that it knows which clusters to set it's pointers at
-		acell.SetCellID(celli);
-		acell.ClearClusterAddresses();
-		acell.SetClusterAddresses(htrackclusters);
-	}
-	for(int celli=0; celli<vtrackcells.size(); celli++){
-		mrdcell& acell = vtrackcells.at(celli);
-		acell.SetCellID(celli);
-		acell.ClearClusterAddresses();
-		acell.SetClusterAddresses(vtrackclusters);
-	}
+	UpdateCellAddresses();
 	
 	if(fillstaticmembers){
 		MRDenergyvspenetration.SetParameters(-3.62645, 3.75503, 2.68525, 3.59244, 1.66969); // TODO MOVE!
@@ -201,6 +188,511 @@ extrahpointerrors(), extrazpoints(), extrazpointerrors() {
 		std::cerr<<"POSSIBLE ERROR!"<<std::endl<<"Track fit stop = ("
 			<<trackfitstop.X()<<", "<<trackfitstop.Y()<<", "<<trackfitstop.Z()<<")"<<std::endl;
 		assert(false);
+	}
+}
+
+cMRDTrack::cMRDTrack(const cMRDTrack& in){ // copy constructor
+	// we MUST call UpdateCellAddresses on move/copy, so must define these manually... 
+	// TODO remove the need for this by avoiding the use of pointers to clusters in mrdcell classes.
+	MRDtrackID = in.MRDtrackID;
+	tanktrackID = in.tanktrackID;
+	
+	// Raw Info:
+	wcsimfile = in.wcsimfile;
+	run_id = in.run_id;
+	event_id = in.event_id;
+	trigger = in.trigger;
+	mrdsubevent_id = in.mrdsubevent_id;
+	digi_ids = in.digi_ids;
+	pmts_hit = in.pmts_hit;
+	digi_qs = in.digi_qs;
+	digi_ts = in.digi_ts;
+	digi_numphots = in.digi_numphots;
+	digi_phot_ts = in.digi_phot_ts;
+	digi_phot_parents = in.digi_phot_parents;
+//	digits = in.digits;
+	
+	// Calculated/Reconstructed Info
+	layers_hit = in.layers_hit;
+	eDepsInLayers = in.eDepsInLayers;
+	KEStart = in.KEStart;
+	KEEnd = in.KEEnd;
+	mutracklengthinMRD = in.mutracklengthinMRD;
+	penetrationdepth = in.penetrationdepth;
+	EnergyLoss = in.EnergyLoss;
+	EnergyLossError = in.EnergyLossError;
+	particlePID = in.particlePID;
+	htrackclusters = in.htrackclusters;
+	vtrackclusters = in.vtrackclusters;
+	htrackcells = in.htrackcells;
+	vtrackcells = in.vtrackcells;
+	
+	// Truth information:
+	trueTrackID = in.trueTrackID;
+//	trueTrack = in.trueTrack;
+	
+	// Additional points to include in the fit from bonsia / vertex:
+	extravpoints = in.extravpoints;
+	extravpointerrors = in.extravpointerrors;
+	extrahpoints = in.extrahpoints;
+	extrahpointerrors = in.extrahpointerrors;
+	extrazpoints = in.extrazpoints;
+	extrazpointerrors = in.extrazpointerrors;
+	
+	// Track fit result
+	htrackorigin = in.htrackorigin;
+	htrackoriginerror = in.htrackoriginerror;
+	htrackgradient = in.htrackgradient;
+	htrackgradienterror = in.htrackgradienterror;
+	htrackfitchi2 = in.htrackfitchi2;
+	htrackfitcov.ResizeTo(2,2);
+	htrackfitcov = in.htrackfitcov;
+	vtrackorigin = in.vtrackorigin;
+	vtrackoriginerror = in.vtrackoriginerror;
+	vtrackgradient = in.vtrackgradient;
+	vtrackgradienterror = in.vtrackgradienterror;
+	vtrackfitchi2 = in.vtrackfitchi2;
+	vtrackfitcov.ResizeTo(2,2);
+	vtrackfitcov = in.vtrackfitcov;
+	
+	trackfitstart = in.trackfitstart;
+	trackfitstop = in.trackfitstop;
+	trackangle = in.trackangle;
+	trackangleerror = in.trackangleerror;
+	ispenetrating = in.ispenetrating;
+	isstopped = in.isstopped;
+	sideexit = in.sideexit;
+	mrdentrypoint = in.mrdentrypoint;
+	mrdentryxbounds = in.mrdentryxbounds;
+	mrdentryybounds = in.mrdentryybounds;
+	
+	interceptstank = in.interceptstank;
+	projectedtankexitpoint = in.projectedtankexitpoint;
+	
+	// And finally the reason we can't let the compiler do this for us:
+//	std::cout<<"const copy construction"<<std::endl;
+	UpdateCellAddresses();
+}
+
+cMRDTrack::cMRDTrack(cMRDTrack& in){ // copy constructor
+	// we MUST call UpdateCellAddresses on move/copy, so must define these manually... 
+	MRDtrackID = in.MRDtrackID;
+	tanktrackID = in.tanktrackID;
+	
+	// Raw Info:
+	wcsimfile = in.wcsimfile;
+	run_id = in.run_id;
+	event_id = in.event_id;
+	trigger = in.trigger;
+	mrdsubevent_id = in.mrdsubevent_id;
+	digi_ids = in.digi_ids;
+	pmts_hit = in.pmts_hit;
+	digi_qs = in.digi_qs;
+	digi_ts = in.digi_ts;
+	digi_numphots = in.digi_numphots;
+	digi_phot_ts = in.digi_phot_ts;
+	digi_phot_parents = in.digi_phot_parents;
+//	digits = in.digits;
+	
+	// Calculated/Reconstructed Info
+	layers_hit = in.layers_hit;
+	eDepsInLayers = in.eDepsInLayers;
+	KEStart = in.KEStart;
+	KEEnd = in.KEEnd;
+	mutracklengthinMRD = in.mutracklengthinMRD;
+	penetrationdepth = in.penetrationdepth;
+	EnergyLoss = in.EnergyLoss;
+	EnergyLossError = in.EnergyLossError;
+	particlePID = in.particlePID;
+	htrackclusters = in.htrackclusters;
+	vtrackclusters = in.vtrackclusters;
+	htrackcells = in.htrackcells;
+	vtrackcells = in.vtrackcells;
+	
+	// Truth information:
+	trueTrackID = in.trueTrackID;
+//	trueTrack = in.trueTrack;
+	
+	// Additional points to include in the fit from bonsia / vertex:
+	extravpoints = in.extravpoints;
+	extravpointerrors = in.extravpointerrors;
+	extrahpoints = in.extrahpoints;
+	extrahpointerrors = in.extrahpointerrors;
+	extrazpoints = in.extrazpoints;
+	extrazpointerrors = in.extrazpointerrors;
+	
+	// Track fit result
+	htrackorigin = in.htrackorigin;
+	htrackoriginerror = in.htrackoriginerror;
+	htrackgradient = in.htrackgradient;
+	htrackgradienterror = in.htrackgradienterror;
+	htrackfitchi2 = in.htrackfitchi2;
+	htrackfitcov.ResizeTo(2,2);
+	htrackfitcov = in.htrackfitcov;
+	vtrackorigin = in.vtrackorigin;
+	vtrackoriginerror = in.vtrackoriginerror;
+	vtrackgradient = in.vtrackgradient;
+	vtrackgradienterror = in.vtrackgradienterror;
+	vtrackfitchi2 = in.vtrackfitchi2;
+	vtrackfitcov.ResizeTo(2,2);
+	vtrackfitcov = in.vtrackfitcov;
+	
+	trackfitstart = in.trackfitstart;
+	trackfitstop = in.trackfitstop;
+	trackangle = in.trackangle;
+	trackangleerror = in.trackangleerror;
+	ispenetrating = in.ispenetrating;
+	isstopped = in.isstopped;
+	sideexit = in.sideexit;
+	mrdentrypoint = in.mrdentrypoint;
+	mrdentryxbounds = in.mrdentryxbounds;
+	mrdentryybounds = in.mrdentryybounds;
+	
+	interceptstank = in.interceptstank;
+	projectedtankexitpoint = in.projectedtankexitpoint;
+	
+	// And finally the reason we can't let the compiler do this for us:
+//	std::cout<<"non-const copy construction"<<std::endl;
+	UpdateCellAddresses();
+}
+
+cMRDTrack::cMRDTrack(cMRDTrack&& in) { // move constructor
+	// we MUST call UpdateCellAddresses on move/copy, so must define these manually... 
+	MRDtrackID = std::move(in.MRDtrackID);
+	tanktrackID = std::move(in.tanktrackID);
+	
+	// Raw Info:
+	wcsimfile = std::move(in.wcsimfile);
+	run_id = std::move(in.run_id);
+	event_id = std::move(in.event_id);
+	trigger = std::move(in.trigger);
+	mrdsubevent_id = std::move(in.mrdsubevent_id);
+	digi_ids = std::move(in.digi_ids);
+	pmts_hit = std::move(in.pmts_hit);
+	digi_qs = std::move(in.digi_qs);
+	digi_ts = std::move(in.digi_ts);
+	digi_numphots = std::move(in.digi_numphots);
+	digi_phot_ts = std::move(in.digi_phot_ts);
+	digi_phot_parents = std::move(in.digi_phot_parents);
+//	digits = std::move(in.digits);
+	
+	// Calculated/Reconstructed Info
+	layers_hit = std::move(in.layers_hit);
+	eDepsInLayers = std::move(in.eDepsInLayers);
+	KEStart = std::move(in.KEStart);
+	KEEnd = std::move(in.KEEnd);
+	mutracklengthinMRD = std::move(in.mutracklengthinMRD);
+	penetrationdepth = std::move(in.penetrationdepth);
+	EnergyLoss = std::move(in.EnergyLoss);
+	EnergyLossError = std::move(in.EnergyLossError);
+	particlePID = std::move(in.particlePID);
+	htrackclusters = std::move(in.htrackclusters);
+	vtrackclusters = std::move(in.vtrackclusters);
+	htrackcells = std::move(in.htrackcells);
+	vtrackcells = std::move(in.vtrackcells);
+	
+	// Truth information:
+	trueTrackID = std::move(in.trueTrackID);
+//	trueTrack = std::move(in.trueTrack);
+	
+	// Additional points to include in the fit from bonsia / vertex:
+	extravpoints = std::move(in.extravpoints);
+	extravpointerrors = std::move(in.extravpointerrors);
+	extrahpoints = std::move(in.extrahpoints);
+	extrahpointerrors = std::move(in.extrahpointerrors);
+	extrazpoints = std::move(in.extrazpoints);
+	extrazpointerrors = std::move(in.extrazpointerrors);
+	
+	// Track fit result
+	htrackorigin = std::move(in.htrackorigin);
+	htrackoriginerror = std::move(in.htrackoriginerror);
+	htrackgradient = std::move(in.htrackgradient);
+	htrackgradienterror = std::move(in.htrackgradienterror);
+	htrackfitchi2 = std::move(in.htrackfitchi2);
+	htrackfitcov = std::move(in.htrackfitcov);
+	vtrackorigin = std::move(in.vtrackorigin);
+	vtrackoriginerror = std::move(in.vtrackoriginerror);
+	vtrackgradient = std::move(in.vtrackgradient);
+	vtrackgradienterror = std::move(in.vtrackgradienterror);
+	vtrackfitchi2 = std::move(in.vtrackfitchi2);
+	vtrackfitcov = std::move(in.vtrackfitcov);
+	
+	trackfitstart = std::move(in.trackfitstart);
+	trackfitstop = std::move(in.trackfitstop);
+	trackangle = std::move(in.trackangle);
+	trackangleerror = std::move(in.trackangleerror);
+	ispenetrating = std::move(in.ispenetrating);
+	isstopped = std::move(in.isstopped);
+	sideexit = std::move(in.sideexit);
+	mrdentrypoint = std::move(in.mrdentrypoint);
+	mrdentryxbounds = std::move(in.mrdentryxbounds);
+	mrdentryybounds = std::move(in.mrdentryybounds);
+	
+	interceptstank = std::move(in.interceptstank);
+	projectedtankexitpoint = std::move(in.projectedtankexitpoint);
+	
+	// And finally the reason we can't let the compiler do this for us:
+//	std::cout<<"move construction"<<std::endl;
+	UpdateCellAddresses();
+}
+
+cMRDTrack& cMRDTrack::operator=(const cMRDTrack& in) { // const copy assignment
+	// we MUST call UpdateCellAddresses on move/copy, so must define these manually... 
+	MRDtrackID = in.MRDtrackID;
+	tanktrackID = in.tanktrackID;
+	
+	// Raw Info:
+	wcsimfile = in.wcsimfile;
+	run_id = in.run_id;
+	event_id = in.event_id;
+	trigger = in.trigger;
+	mrdsubevent_id = in.mrdsubevent_id;
+	digi_ids = in.digi_ids;
+	pmts_hit = in.pmts_hit;
+	digi_qs = in.digi_qs;
+	digi_ts = in.digi_ts;
+	digi_numphots = in.digi_numphots;
+	digi_phot_ts = in.digi_phot_ts;
+	digi_phot_parents = in.digi_phot_parents;
+//	digits = in.digits;
+	
+	// Calculated/Reconstructed Info
+	layers_hit = in.layers_hit;
+	eDepsInLayers = in.eDepsInLayers;
+	KEStart = in.KEStart;
+	KEEnd = in.KEEnd;
+	mutracklengthinMRD = in.mutracklengthinMRD;
+	penetrationdepth = in.penetrationdepth;
+	EnergyLoss = in.EnergyLoss;
+	EnergyLossError = in.EnergyLossError;
+	particlePID = in.particlePID;
+	htrackclusters = in.htrackclusters;
+	vtrackclusters = in.vtrackclusters;
+	htrackcells = in.htrackcells;
+	vtrackcells = in.vtrackcells;
+	
+	// Truth information:
+	trueTrackID = in.trueTrackID;
+//	trueTrack = in.trueTrack;
+	
+	// Additional points to include in the fit from bonsia / vertex:
+	extravpoints = in.extravpoints;
+	extravpointerrors = in.extravpointerrors;
+	extrahpoints = in.extrahpoints;
+	extrahpointerrors = in.extrahpointerrors;
+	extrazpoints = in.extrazpoints;
+	extrazpointerrors = in.extrazpointerrors;
+	
+	// Track fit result
+	htrackorigin = in.htrackorigin;
+	htrackoriginerror = in.htrackoriginerror;
+	htrackgradient = in.htrackgradient;
+	htrackgradienterror = in.htrackgradienterror;
+	htrackfitchi2 = in.htrackfitchi2;
+	htrackfitcov = in.htrackfitcov;
+	vtrackorigin = in.vtrackorigin;
+	vtrackoriginerror = in.vtrackoriginerror;
+	vtrackgradient = in.vtrackgradient;
+	vtrackgradienterror = in.vtrackgradienterror;
+	vtrackfitchi2 = in.vtrackfitchi2;
+	vtrackfitcov = in.vtrackfitcov;
+	
+	trackfitstart = in.trackfitstart;
+	trackfitstop = in.trackfitstop;
+	trackangle = in.trackangle;
+	trackangleerror = in.trackangleerror;
+	ispenetrating = in.ispenetrating;
+	isstopped = in.isstopped;
+	sideexit = in.sideexit;
+	mrdentrypoint = in.mrdentrypoint;
+	mrdentryxbounds = in.mrdentryxbounds;
+	mrdentryybounds = in.mrdentryybounds;
+	
+	interceptstank = in.interceptstank;
+	projectedtankexitpoint = in.projectedtankexitpoint;
+	
+	// And finally the reason we can't let the compiler do this for us:
+//	std::cout<<"const copy assignment"<<std::endl;
+	UpdateCellAddresses();
+	return *this;
+}
+
+cMRDTrack& cMRDTrack::operator=(cMRDTrack& in) { // copy assignment
+	// we MUST call UpdateCellAddresses on move/copy, so must define these manually... 
+	MRDtrackID = in.MRDtrackID;
+	tanktrackID = in.tanktrackID;
+	
+	// Raw Info:
+	wcsimfile = in.wcsimfile;
+	run_id = in.run_id;
+	event_id = in.event_id;
+	trigger = in.trigger;
+	mrdsubevent_id = in.mrdsubevent_id;
+	digi_ids = in.digi_ids;
+	pmts_hit = in.pmts_hit;
+	digi_qs = in.digi_qs;
+	digi_ts = in.digi_ts;
+	digi_numphots = in.digi_numphots;
+	digi_phot_ts = in.digi_phot_ts;
+	digi_phot_parents = in.digi_phot_parents;
+//	digits = in.digits;
+	
+	// Calculated/Reconstructed Info
+	layers_hit = in.layers_hit;
+	eDepsInLayers = in.eDepsInLayers;
+	KEStart = in.KEStart;
+	KEEnd = in.KEEnd;
+	mutracklengthinMRD = in.mutracklengthinMRD;
+	penetrationdepth = in.penetrationdepth;
+	EnergyLoss = in.EnergyLoss;
+	EnergyLossError = in.EnergyLossError;
+	particlePID = in.particlePID;
+	htrackclusters = in.htrackclusters;
+	vtrackclusters = in.vtrackclusters;
+	htrackcells = in.htrackcells;
+	vtrackcells = in.vtrackcells;
+	
+	// Truth information:
+	trueTrackID = in.trueTrackID;
+//	trueTrack = in.trueTrack;
+	
+	// Additional points to include in the fit from bonsia / vertex:
+	extravpoints = in.extravpoints;
+	extravpointerrors = in.extravpointerrors;
+	extrahpoints = in.extrahpoints;
+	extrahpointerrors = in.extrahpointerrors;
+	extrazpoints = in.extrazpoints;
+	extrazpointerrors = in.extrazpointerrors;
+	
+	// Track fit result
+	htrackorigin = in.htrackorigin;
+	htrackoriginerror = in.htrackoriginerror;
+	htrackgradient = in.htrackgradient;
+	htrackgradienterror = in.htrackgradienterror;
+	htrackfitchi2 = in.htrackfitchi2;
+	htrackfitcov = in.htrackfitcov;
+	vtrackorigin = in.vtrackorigin;
+	vtrackoriginerror = in.vtrackoriginerror;
+	vtrackgradient = in.vtrackgradient;
+	vtrackgradienterror = in.vtrackgradienterror;
+	vtrackfitchi2 = in.vtrackfitchi2;
+	vtrackfitcov = in.vtrackfitcov;
+	
+	trackfitstart = in.trackfitstart;
+	trackfitstop = in.trackfitstop;
+	trackangle = in.trackangle;
+	trackangleerror = in.trackangleerror;
+	ispenetrating = in.ispenetrating;
+	isstopped = in.isstopped;
+	sideexit = in.sideexit;
+	mrdentrypoint = in.mrdentrypoint;
+	mrdentryxbounds = in.mrdentryxbounds;
+	mrdentryybounds = in.mrdentryybounds;
+	
+	interceptstank = in.interceptstank;
+	projectedtankexitpoint = in.projectedtankexitpoint;
+	
+	// And finally the reason we can't let the compiler do this for us:
+//	std::cout<<"non-const copy assignment"<<std::endl;
+	UpdateCellAddresses();
+	return *this;
+}
+
+cMRDTrack& cMRDTrack::operator=(cMRDTrack&& in) { // move assignment
+	// we MUST call UpdateCellAddresses on move/copy, so must define these manually... 
+	MRDtrackID = std::move(in.MRDtrackID);
+	tanktrackID = std::move(in.tanktrackID);
+	
+	// Raw Info:
+	wcsimfile = std::move(in.wcsimfile);
+	run_id = std::move(in.run_id);
+	event_id = std::move(in.event_id);
+	trigger = std::move(in.trigger);
+	mrdsubevent_id = std::move(in.mrdsubevent_id);
+	digi_ids = std::move(in.digi_ids);
+	pmts_hit = std::move(in.pmts_hit);
+	digi_qs = std::move(in.digi_qs);
+	digi_ts = std::move(in.digi_ts);
+	digi_numphots = std::move(in.digi_numphots);
+	digi_phot_ts = std::move(in.digi_phot_ts);
+	digi_phot_parents = std::move(in.digi_phot_parents);
+//	digits = std::move(in.digits);
+	
+	// Calculated/Reconstructed Info
+	layers_hit = std::move(in.layers_hit);
+	eDepsInLayers = std::move(in.eDepsInLayers);
+	KEStart = std::move(in.KEStart);
+	KEEnd = std::move(in.KEEnd);
+	mutracklengthinMRD = std::move(in.mutracklengthinMRD);
+	penetrationdepth = std::move(in.penetrationdepth);
+	EnergyLoss = std::move(in.EnergyLoss);
+	EnergyLossError = std::move(in.EnergyLossError);
+	particlePID = std::move(in.particlePID);
+	htrackclusters = std::move(in.htrackclusters);
+	vtrackclusters = std::move(in.vtrackclusters);
+	htrackcells = std::move(in.htrackcells);
+	vtrackcells = std::move(in.vtrackcells);
+	
+	// Truth information:
+	trueTrackID = std::move(in.trueTrackID);
+//	trueTrack = std::move(in.trueTrack);
+	
+	// Additional points to include in the fit from bonsia / vertex:
+	extravpoints = std::move(in.extravpoints);
+	extravpointerrors = std::move(in.extravpointerrors);
+	extrahpoints = std::move(in.extrahpoints);
+	extrahpointerrors = std::move(in.extrahpointerrors);
+	extrazpoints = std::move(in.extrazpoints);
+	extrazpointerrors = std::move(in.extrazpointerrors);
+	
+	// Track fit result
+	htrackorigin = std::move(in.htrackorigin);
+	htrackoriginerror = std::move(in.htrackoriginerror);
+	htrackgradient = std::move(in.htrackgradient);
+	htrackgradienterror = std::move(in.htrackgradienterror);
+	htrackfitchi2 = std::move(in.htrackfitchi2);
+	htrackfitcov = std::move(in.htrackfitcov);
+	vtrackorigin = std::move(in.vtrackorigin);
+	vtrackoriginerror = std::move(in.vtrackoriginerror);
+	vtrackgradient = std::move(in.vtrackgradient);
+	vtrackgradienterror = std::move(in.vtrackgradienterror);
+	vtrackfitchi2 = std::move(in.vtrackfitchi2);
+	vtrackfitcov = std::move(in.vtrackfitcov);
+	
+	trackfitstart = std::move(in.trackfitstart);
+	trackfitstop = std::move(in.trackfitstop);
+	trackangle = std::move(in.trackangle);
+	trackangleerror = std::move(in.trackangleerror);
+	ispenetrating = std::move(in.ispenetrating);
+	isstopped = std::move(in.isstopped);
+	sideexit = std::move(in.sideexit);
+	mrdentrypoint = std::move(in.mrdentrypoint);
+	mrdentryxbounds = std::move(in.mrdentryxbounds);
+	mrdentryybounds = std::move(in.mrdentryybounds);
+	
+	interceptstank = std::move(in.interceptstank);
+	projectedtankexitpoint = std::move(in.projectedtankexitpoint);
+	
+	// And finally the reason we can't let the compiler do this for us:
+//	std::cout<<"move assignment"<<std::endl;
+	UpdateCellAddresses();
+	return *this;
+}
+
+void cMRDTrack::UpdateCellAddresses(){
+	for(int celli=0; celli<htrackcells.size(); celli++){
+		mrdcell& acell = htrackcells.at(celli);
+		// need to tell the cell where abouts it is in the track
+		// so that it knows which clusters to set it's pointers at
+		acell.SetCellID(celli);
+		acell.ClearClusterAddresses();
+		acell.SetClusterAddresses(htrackclusters);
+	}
+	for(int celli=0; celli<vtrackcells.size(); celli++){
+		mrdcell& acell = vtrackcells.at(celli);
+		acell.SetCellID(celli);
+		acell.ClearClusterAddresses();
+		acell.SetClusterAddresses(vtrackclusters);
 	}
 }
 
