@@ -3,6 +3,7 @@
 #include "MrdCluster.hh"
 
 void mrdcell::IncrementStatus(){ status +=1; }
+void mrdcell::SetUpstreamNeighbours(int upstreamneighbourcount){ upstreamneighbours=upstreamneighbourcount; }
 
 void mrdcell::SetCellID(int cellidin){ cellid=cellidin; } // needs to be index in track
 
@@ -21,7 +22,7 @@ void mrdcell::ClearClusterAddresses(){
 }
 
 mrdcell::mrdcell(mrdcluster* startcluster, mrdcluster* endcluster) : status(0), utneighbourcellindex(-1), 
-	dtneighbourcellindex(-1), parentcellindex(-1), hasdaughters(false), neighbourchi2(-1.) {
+	dtneighbourcellindex(-1), parentcellindex(-1), hasdaughters(false), neighbourchi2(-1.), upstreamneighbours(0) {
 	clusters = std::make_pair(startcluster, endcluster);
 	isdownstreamgoing = true; //(clusters.first->GetTime() < clusters.second->GetTime());
 	cellid=cellcounter;
@@ -39,6 +40,7 @@ mrdcell::mrdcell(const mrdcell& cellin, int cellidin){
 	parentcellindex=cellin.parentcellindex;
 	hasdaughters=cellin.hasdaughters;
 	neighbourchi2=cellin.neighbourchi2;
+	upstreamneighbours=cellin.upstreamneighbours;
 }
 
 // default constructor

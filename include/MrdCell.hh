@@ -23,11 +23,13 @@ class mrdcell {
 	bool hasdaughters;			// so we can keep short tracks that have daughters (*)
 	double neighbourchi2;		// if we have more than one candidate, use the most aligned neighbour (*)
 								// (*) denotes fields that are only useful during reconstruction
+	int upstreamneighbours;		// track how many cells are in this chain so far
 	
 	void IncrementStatus();
 	void SetClusterAddresses(std::vector<mrdcluster> &trackclusters);
 	void ClearClusterAddresses();
 	void SetCellID(int cellidin);
+	void SetUpstreamNeighbours(int upstreamneighbourcount);
 	
 	mrdcell(mrdcluster* startcluster, mrdcluster* endcluster);
 	

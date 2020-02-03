@@ -299,12 +299,13 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 	//  a. the two cells must have a shared cluster (there will be two end clusters and a shared middle cluster)
 	//  b. the clusters must be sufficiently aligned - the x^2 of a linear fit through all 3 cluster centres,
 	// with errors defined by paddle boundaries, must be less than chi2limit.
-	//  c. then there's some tricky stuff based on track splitting and converging. 
-	// if an uptrack cell already has a downtrack cell, then another downtrack candidate is found, then the
-	// track splits. In this case, we unset the previous downtrack candidate as a neighbour and instead make
-	// both downtrack cells "daughters".
+	//  c. then there's some stuff based on track splitting.
+	// if an uptrack cell already has a downtrack cell, then another downtrack candidate is found,
+	// (i.e. the track splits) we choose the best aligned downstream cell and may re-assign the parent of that
+	// cell. This 'best matching' prefers cells that lead from an adjacent layer,
+	// and prefers cells with a longer upstream number of cells. 
 	// if a downtrack cell is found to align with multiple uptrack cells, then the uptrack cells converge.
-	// in this case, we take the uptrack candidate with the best chi2 as the uptrack cell, and ignore others.
+	// again, we take the uptrack candidate with the "best match" as the uptrack cell, and ignore others.
 	//  d. finally, we do the scan from upstream to downstream, but the definition of "uptrack" and "downtrack"
 	// must account for upstream directed tracks. We use the cell direction to account for this. 
 	
@@ -370,11 +371,14 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 						// both are cells of a downstream going track.
 						// now we need to check if this cell is already the upstream neighbour of
 						// another cell - i.e. does the track split here
+						bool makematch=true;
+						mrdcell* olddtneighbourcell = nullptr;
 						if((upcell->dtneighbourcellindex==-2)||(upcell->dtneighbourcellindex>-1)){
 // Previously the idea here was to look for tracks that split - 
-// i.e. if 2 cells are potential downstream candidates, the track 'splits'
-// and the downstream tracks are considered independent from each other, and from the daughter.
-// Unfortunately in practice this fragments tracks and parent segments get pruned as they are not long enough.
+// i.e. if 2 downstream cells both start from this cell's downstream cluster, the track 'splits'.
+// The original idea was that downstream tracks are considered 'daughters' of the parent and are
+// independent tracks of their own right (perhaps from a decay).
+// In practice this fragments tracks and they get pruned as they are not long enough.
 // Instead, we'll just have to choose one or the other... and hope we choose right, 
 // because the other daughter may die!
 // TODO: Perhaps add proper support for keeping all daughters associated with the parent ...
@@ -396,65 +400,140 @@ void cMRDSubEvent::DoReconstruction(bool printtracks, bool drawcells, bool drawf
 #ifdef TRACKFINDVERBOSE
 							std::cout<<"this is a second downtrack candidate! Choosing best match"<<std::endl;
 #endif
-							// we need to un-set the existing neighbour. Instead set both downstream
-							// candidates as their own new tracks, and call this track the 'parent'
-							if(!((downcluster->layer)>(thecells.at(upcell->dtneighbourcellindex)->clusters.second->layer)) &&
-								chi2<(thecells.at(upcell->dtneighbourcellindex)->neighbourchi2)){
+							// find the best candidate:
+							// prefer cells with better alignment
+							// prefer cells that go to the next layer (rather than skipping one)
+							// TODO right now adjacent layers ALWAYS override, regardless of chi2: tune?
+							double downfom=0;
+							if(chi2<(thecells.at(upcell->dtneighbourcellindex)->neighbourchi2)){
+								// new candidate layer has a better alignment
+								downfom += 1;
+							}
+							if((downcluster->layer)>(thecells.at(upcell->dtneighbourcellindex)->clusters.second->layer)){
+								// new candidate layer is further downstream than existing candidate
+								// (i.e. skips a layer, while existing candidate does not)
+								downfom -= 2;
+							}
+							// we don't need to check vice-versa
+							// (existing candidate skipped a layer while new candidate didn't)
+							// because we will always evaluate adjacent-layer candidates first
+							if(downfom>0){
 #ifdef TRACKFINDVERBOSE
-								std::cout<<"this match has a better chi2, overriding existing pairing"<<std::endl;
-								std::cout<<"considering cell "<<acelli<<" the upstream neighbour of cell "<<bcelli<<std::endl;
+								std::cout<<"this match has a better chi2+layer match, "
+										 <<"overriding existing pairing"<<std::endl;
 #endif
-								downcell->utneighbourcellindex = upcell->cellid;
-								downcell->neighbourchi2 = chi2;
-								mrdcell* olddtneighbourcell = thecells.at(upcell->dtneighbourcellindex);
-								upcell->dtneighbourcellindex=downcell->cellid;
-								// wipe old downstream neighbour details
-								olddtneighbourcell->utneighbourcellindex = -1;
-								 // should we still leave some of this info? 
-								olddtneighbourcell->neighbourchi2 = 0.;
-								olddtneighbourcell->parentcellindex = upcell->cellid;
-								downcell->parentcellindex = upcell->cellid;
-								upcell->hasdaughters = true;
+								// don't make the match just yet though, we need to see if the
+								// downstream cell already has a better parent
+								// if we do need to clear the existing daughter, make a note of it
+								olddtneighbourcell = thecells.at(upcell->dtneighbourcellindex);
 							} else {
 #ifdef TRACKFINDVERBOSE
-								std::cout<<"this match has a worse chi2, ignoring this pairing"<<std::endl;
+								std::cout<<"this match has a worse chi2, or requires skipping a layer while the existing candidate does not: ignoring this pairing"<<std::endl;
 #endif
+								makematch=false;
 							}
 						} else {
 #ifdef TRACKFINDVERBOSE
 							std::cout<<"no existing downtrack candidate..."<<std::endl;
 #endif
-							// this cell does not have a downstream cell yet. If the downstream cell has no
-							// existing upstream cell, use this one. If the downstream cell already has an
-							// upstream neighbour defined (converging upstream tracks), use the better fit
+						}
+						
+						// Next check if the downstream cell has any existing upstream cell.
+						// if not, use this one. If the downstream cell already has an
+						// upstream neighbour defined (converging upstream tracks), use the better fit
+						mrdcell* oldutneighbourcell = nullptr;
+						if(makematch && downcell->utneighbourcellindex!=-1){
 #ifdef TRACKFINDVERBOSE
-							if(downcell->utneighbourcellindex!=-1){
-							std::cout<<"existing candidate chi2="<<downcell->neighbourchi2<<std::endl;
-							std::cout<<"existing candidate upstream layer="
-								<<thecells.at(downcell->utneighbourcellindex)->clusters.first->layer<<std::endl;
-							std::cout<<"new candidate chi2="<<chi2<<std::endl
-								<<"new candidate upstream layer="<<upcell->clusters.first->layer<<std::endl;
+							std::cout<<"this is a second parent candidate! Choosing best match"<<std::endl;
+							std::cout<<"existing candidate chi2="<<downcell->neighbourchi2<<std::endl
+									 <<"new candidate chi2="<<chi2<<std::endl
+									 <<"existing candidate upstream layer="
+									 <<thecells.at(downcell->utneighbourcellindex)->clusters.first->layer<<std::endl
+									 <<"new candidate upstream layer="
+									 <<upcell->clusters.first->layer<<std::endl;
+#endif
+							// there are two converging tracks trying to take ownership of a downstream cell.
+							// compare this cell with the downstream cell's current parent,
+							// and decide which is the "best" match. If this is better,
+							// override the downstream cell's existing parent.
+							// "best" is defined by:
+							// prefer cells with better alignment
+							// prefer cells that go to the next layer (rather than skipping one)
+							// prefer parents that have a longer upstream heritage (extend already long tracks)
+							double upfom = 0;
+							// account for which is better aligned
+							double chi2ratio = (chi2/downcell->neighbourchi2);
+							upfom += ((chi2ratio>1) ? (-(chi2ratio-1.)) : ((1./chi2ratio)-1.))/35.;
+							std::cout<<"upfom from chi2 = "<<upfom<<std::endl;
+							// acount for differences in upstream cell length;
+							// does one of the candidate parents skip a layer, while the other doesn't
+							double upfom1 = 0;
+							if((upcell->clusters.first->layer) >
+								(thecells.at(downcell->utneighbourcellindex)->clusters.first->layer)){
+								// this cell starts from a later layer
+								// i.e. is adjacent, while the current parent is not
+								upfom1 = 1.;
+								// again we don't need to consider alt case due to candidate scan ordering
 							}
-#endif
-							if( (downcell->utneighbourcellindex==-1) || 
-								(downcell->utneighbourcellindex!=-1 && chi2<downcell->neighbourchi2) ||
-								(downcell->utneighbourcellindex	!=-1 && chi2<(downcell->neighbourchi2*3.) &&
-								upcell->clusters.first->layer > 
-								(thecells.at(downcell->utneighbourcellindex)->clusters.first->layer)) ){
+							std::cout<<"upfom from layer differences = "<<upfom1<<std::endl;
+							upfom += upfom1;
+							// account for length of upstream cell heritage
+							double upfom2 = ( upcell->upstreamneighbours
+											- thecells.at(downcell->utneighbourcellindex)->upstreamneighbours );
+							std::cout<<"upfom from upstream length: "<<upfom2<<std::endl;
+							upfom += upfom2;
+							std::cout<<"total upfom= "<<upfom<<std::endl;
+							if(upfom > 1.){
+//							if( (chi2<downcell->neighbourchi2) ||
+//								(chi2<(downcell->neighbourchi2*3.) &&
+//								upcell->clusters.first->layer >
+//								(thecells.at(downcell->utneighbourcellindex)->clusters.first->layer)) ){
 #ifdef TRACKFINDVERBOSE
-								std::cout<<"considering cell "<<acelli<<" the upstream neighbour of cell "<<bcelli<<std::endl;
+								std::cout<<"downstream cell says this is a better match than it's "
+										 <<"existing parent"<<std::endl;
 #endif
-								downcell->utneighbourcellindex = upcell->cellid;
-								downcell->neighbourchi2 = chi2;
-								upcell->dtneighbourcellindex = downcell->cellid;
+								// make a note of the old parent we need to inform has been replaced
+								oldutneighbourcell = thecells.at(downcell->utneighbourcellindex);
 							} else {
 								// else this cell already has a neighbour with a better fit. Nothing to do.
 #ifdef TRACKFINDVERBOSE
-								std::cout<<"... but upstream or downstream cell already has a better fit!"<<std::endl;
+								std::cout<<"... but downstream cell already has a better fit!"<<std::endl;
 #endif
+								makematch=false;
 							}
 						}
-						// we need to check if the track splits, so continue scanning downstream cells
+						if(makematch){
+							// either we had no existing candidates or this was a better candidate,
+							// so make the matches
+#ifdef TRACKFINDVERBOSE
+							std::cout<<"considering cell "<<acelli<<" the upstream neighbour of cell "<<bcelli<<std::endl;
+#endif
+							downcell->utneighbourcellindex = upcell->cellid;
+							downcell->SetUpstreamNeighbours(upcell->upstreamneighbours+1);
+							downcell->neighbourchi2 = chi2;
+							upcell->dtneighbourcellindex = downcell->cellid;
+							
+							// if this cell had a daughter already which we're overriding,
+							// wipe the old daughter's upstream neighbour details
+							if(olddtneighbourcell!=nullptr){
+								olddtneighbourcell->utneighbourcellindex = -1;
+								olddtneighbourcell->neighbourchi2 = 0.;
+								olddtneighbourcell->SetUpstreamNeighbours(0);
+								// this is old stuff about parentage, which would make
+								// the daughers retains knowledge of this as the parent,
+								// even when they know they're not considered part of the same track.
+								// deprecated and not used.
+								olddtneighbourcell->parentcellindex = upcell->cellid;
+								downcell->parentcellindex = upcell->cellid;
+								upcell->hasdaughters = true;
+							}
+							// if the daugher had an existing parent which we're overriding,
+							// tell the old parent about it
+							if(oldutneighbourcell!=nullptr){
+								oldutneighbourcell->dtneighbourcellindex = -1;
+								oldutneighbourcell->neighbourchi2 = 0.;
+							}
+						}
 					}
 					/* else if((!(upcell->isdownstreamgoing))&&(!(downcell->isdownstreamgoing))){
 						// both are components of upstream going tracks. Check for any existing daughters
