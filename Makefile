@@ -3,8 +3,9 @@ INC_DIR     = include
 
 CC          = g++
 CPPFLAGS    =  -I$(INC_DIR) -fPIC
-CXXFLAGS    = -g -std=c++11 -Wall -fdiagnostics-color=always -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -MMD -MP `root-config --libs` -lCore -lCint -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl -rdynamic -pthread -m64
+CXXFLAGS    = -g -std=c++11 -Wall -fdiagnostics-color=always -Wno-reorder -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable -MMD -MP `root-config --libs` -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl -rdynamic -pthread -m64
 CPPFLAGS   += `root-config --cflags`
+
 LDFLAGS     = `root-config --libs` -lMinuit
 OUTPUT_OPTION = -o $@
 
@@ -39,7 +40,9 @@ clean:
 
 $(SRC_DIR)/FindMrdTracks_RootDict.cpp: $(INC_DIR)/FindMrdTracks_Linkdef.h
 	@echo "making $@"
-	rootcint -f $@ -c -p $(CPPFLAGS) $(HDR_NAMES) $^
+	#rootcint -f $@ -c -I$(INC_DIR) $(HDR_NAMES) $^
+	rootcling -f $@ -c -p -rmf libFindMrdTracks.rootmap -I$(INC_DIR) $(HDR_NAMES) $^
+	mv libFindMrdTracks.rootmap src/
 
 $(INC_DIR)/FindMrdTracks_Linkdef.h:
 	@echo "making $@"

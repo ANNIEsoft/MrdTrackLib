@@ -140,7 +140,7 @@ void cMRDTrack::CalculateEnergyLoss(){
 		sqrt(pow(muXdistanceinMRD,2)+pow(muYdistanceinMRD,2)
 		+pow(penetrationdepth,2));
 	// calculate the energy loss
-	double dEdx = MRDenergyvspenetration.Eval(trackangle);
+	double dEdx = MRDenergyvspenetration->Eval(trackangle);
 	EnergyLoss = mutracklengthinMRD*dEdx;
 	
 	// calculate energy by recalculating with dEdx for maximum and minimum gradients
@@ -156,8 +156,8 @@ void cMRDTrack::CalculateEnergyLoss(){
 									+pow(vtrackgradshallowest,2));
 	double trackanglemin = atan(trackgradmin);
 	trackangleerror = atan(trackanglemax-trackanglemin);
-	double dEdxmax = MRDenergyvspenetration.Eval(trackanglemax); // TODO evaluate @ fit min when availabe
-	double dEdxmin = MRDenergyvspenetration.Eval(trackanglemin); // TODO evaluate @ fit max when available
+	double dEdxmax = MRDenergyvspenetration->Eval(trackanglemax); // TODO evaluate @ fit min when availabe
+	double dEdxmin = MRDenergyvspenetration->Eval(trackanglemin); // TODO evaluate @ fit max when available
 	double EnergyLossMax = mutracklengthinMRD*dEdxmax;
 	double EnergyLossMin = mutracklengthinMRD*dEdxmin;
 	EnergyLossError = std::max(EnergyLossMax-EnergyLoss,EnergyLoss-EnergyLossMin); // XXX asymmetric errors!

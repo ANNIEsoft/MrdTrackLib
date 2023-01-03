@@ -164,7 +164,8 @@ extrahpointerrors(), extrazpoints(), extrazpointerrors() {
 	UpdateCellAddresses();
 	
 	if(fillstaticmembers){
-		MRDenergyvspenetration.SetParameters(-3.62645, 3.75503, 2.68525, 3.59244, 1.66969); // TODO MOVE!
+		MRDenergyvspenetration=new TF1("af","expo(0)+pol0(2)+([3]/([4]-x))",0,1.6);
+		MRDenergyvspenetration->SetParameters(-3.62645, 3.75503, 2.68525, 3.59244, 1.66969); // TODO MOVE!
 		fillstaticmembers=false;
 	}
 	
@@ -698,7 +699,7 @@ void cMRDTrack::UpdateCellAddresses(){
 
 // Set Static Members
 // ==================
-TF1 cMRDTrack::MRDenergyvspenetration=TF1("af","expo(0)+pol0(2)+([3]/([4]-x))",0,1.6);
+TF1* cMRDTrack::MRDenergyvspenetration=nullptr;
 // TODO FIXME these are coded in the constructor! Move them elsewhere - a new static?
 //  NO.   NAME      VALUE            ERROR          SIZE      DERIVATIVE 
 //   1  p0          -3.62645e+00   2.40923e+01   2.22710e-04   8.81482e-04
