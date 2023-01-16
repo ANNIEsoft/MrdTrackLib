@@ -709,3 +709,11 @@ TF1* cMRDTrack::MRDenergyvspenetration=nullptr;
 //   5  p4           1.66969e+00   6.49103e-01   2.51472e-05  -6.46072e-03
 Bool_t cMRDTrack::fillstaticmembers=true;
 
+double cMRDTrack::AngleToEnergyLoss(double penetration_angle){
+	if(fillstaticmembers){
+		MRDenergyvspenetration=new TF1("af","expo(0)+pol0(2)+([3]/([4]-x))",0,1.6);
+		MRDenergyvspenetration->SetParameters(-3.62645, 3.75503, 2.68525, 3.59244, 1.66969); // TODO MOVE!
+		fillstaticmembers=false;
+	}
+	return MRDenergyvspenetration->Eval(penetration_angle);
+}

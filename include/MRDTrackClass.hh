@@ -243,6 +243,7 @@ class cMRDTrack : public TObject {			// TObject inheritance is required to put i
 	static Bool_t fillstaticmembers;
 	public:
 	static TF1* MRDenergyvspenetration;
+	static double AngleToEnergyLoss(double penetration_angle);
 	
 	// Default Constructor
 	// ====================
